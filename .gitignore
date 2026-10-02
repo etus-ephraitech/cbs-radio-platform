@@ -1,0 +1,47 @@
+# Environment
+.env
+
+# Dependencies
+/vendor/
+/node_modules/
+
+# CodeIgniter 4 writable directory
+/writable/cache/*
+!/writable/cache/index.html
+/writable/logs/*
+!/writable/logs/index.html
+/writable/session/*
+!/writable/session/index.html
+/writable/uploads/*
+!/writable/uploads/index.html
+/writable/debugbar/*
+!/writable/debugbar/index.html
+/writable/voice-notes/*
+!/writable/voice-notes/index.html
+
+# Builds / archives
+/builds/
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+
+# PHPUnit
+.phpunit.result.cache
+/tests/_output/*
+!/tests/_output/index.html
+
+# Static analysis caches
+.phpstan.cache/
+
+# Never commit real credentials even if accidentally placed here
+*.pem
+*.key
+!resources/**/*.key.example
