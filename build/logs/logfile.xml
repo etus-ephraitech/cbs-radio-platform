@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="/var/www/projects/cbs/tribute/phpunit.dist.xml" tests="12" assertions="19" errors="0" failures="1" skipped="0" time="6.447582">
+    <testsuite name="App" tests="12" assertions="19" errors="0" failures="1" skipped="0" time="6.447582">
+      <testsuite name="ExampleDatabaseTest" file="/var/www/projects/cbs/tribute/tests/database/ExampleDatabaseTest.php" tests="2" assertions="3" errors="0" failures="0" skipped="0" time="0.920053">
+        <testcase name="testModelFindAll" file="/var/www/projects/cbs/tribute/tests/database/ExampleDatabaseTest.php" line="17" class="ExampleDatabaseTest" classname="ExampleDatabaseTest" assertions="1" time="0.835505"/>
+        <testcase name="testSoftDeleteLeavesRow" file="/var/www/projects/cbs/tribute/tests/database/ExampleDatabaseTest.php" line="28" class="ExampleDatabaseTest" classname="ExampleDatabaseTest" assertions="2" time="0.084548"/>
+      </testsuite>
+      <testsuite name="Tests\Database\Models\BookingModelTest" file="/var/www/projects/cbs/tribute/tests/database/Models/BookingModelTest.php" tests="10" assertions="16" errors="0" failures="1" skipped="0" time="5.527528">
+        <testcase name="testThereAreSixStatusesAndTheListMatchesTheConstants" file="/var/www/projects/cbs/tribute/tests/database/Models/BookingModelTest.php" line="35" class="Tests\Database\Models\BookingModelTest" classname="Tests.Database.Models.BookingModelTest" assertions="1" time="1.512176"/>
+        <testcase name="testANewBookingWaitsForPayment" file="/var/www/projects/cbs/tribute/tests/database/Models/BookingModelTest.php" line="43" class="Tests\Database\Models\BookingModelTest" classname="Tests.Database.Models.BookingModelTest" assertions="1" time="0.429120"/>
+        <testcase name="testApprovingRecordsWhoAndWhy" file="/var/www/projects/cbs/tribute/tests/database/Models/BookingModelTest.php" line="48" class="Tests\Database\Models\BookingModelTest" classname="Tests.Database.Models.BookingModelTest" assertions="4" time="0.440303"/>
+        <testcase name="testRejectingRecordsWhoAndWhy" file="/var/www/projects/cbs/tribute/tests/database/Models/BookingModelTest.php" line="60" class="Tests\Database\Models\BookingModelTest" classname="Tests.Database.Models.BookingModelTest" assertions="2" time="0.422620"/>
+        <testcase name="testMarkingAiredStampsTheTime" file="/var/www/projects/cbs/tribute/tests/database/Models/BookingModelTest.php" line="71" class="Tests\Database\Models\BookingModelTest" classname="Tests.Database.Models.BookingModelTest" assertions="3" time="0.443578"/>
+        <testcase name="testCancellingOnlyChangesTheStatus" file="/var/www/projects/cbs/tribute/tests/database/Models/BookingModelTest.php" line="84" class="Tests\Database\Models\BookingModelTest" classname="Tests.Database.Models.BookingModelTest" assertions="1" time="0.415524"/>
+        <testcase name="testThePendingModerationQueueIsOldestFirst" file="/var/www/projects/cbs/tribute/tests/database/Models/BookingModelTest.php" line="95" class="Tests\Database\Models\BookingModelTest" classname="Tests.Database.Models.BookingModelTest" assertions="1" time="0.448559"/>
+        <testcase name="testASlotsQueueIsItsApprovedBookingsOnly" file="/var/www/projects/cbs/tribute/tests/database/Models/BookingModelTest.php" line="107" class="Tests\Database\Models\BookingModelTest" classname="Tests.Database.Models.BookingModelTest" assertions="1" time="0.488872"/>
+        <testcase name="testBookingsCanBeListedByStatusNewestFirst" file="/var/www/projects/cbs/tribute/tests/database/Models/BookingModelTest.php" line="121" class="Tests\Database\Models\BookingModelTest" classname="Tests.Database.Models.BookingModelTest" assertions="1" time="0.448798"/>
+        <testcase name="testBookingsMadeInTheSameSecondKeepAStableOrder" file="/var/www/projects/cbs/tribute/tests/database/Models/BookingModelTest.php" line="133" class="Tests\Database\Models\BookingModelTest" classname="Tests.Database.Models.BookingModelTest" assertions="1" time="0.477980">
+          <failure type="PHPUnit\Framework\ExpectationFailedException">Tests\Database\Models\BookingModelTest::testBookingsMadeInTheSameSecondKeepAStableOrder
+Oldest first, and first-come first-served among the tied.
+Failed asserting that two arrays are identical.
+--- Expected
++++ Actual
+@@ @@
+ Array &amp;0 [
+-    0 =&gt; 1,
++    0 =&gt; 3,
+     1 =&gt; 2,
+-    2 =&gt; 3,
++    2 =&gt; 1,
+ ]
+
+/var/www/projects/cbs/tribute/tests/database/Models/BookingModelTest.php:145</failure>
+        </testcase>
+      </testsuite>
+    </testsuite>
+  </testsuite>
+</testsuites>

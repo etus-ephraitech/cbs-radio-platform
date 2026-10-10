@@ -1,0 +1,151 @@
+<?php
+
+namespace App\Services;
+
+use App\Libraries\VendorGiftClients\GenericRestVendorClient;
+use App\Models\GiftModel;
+use App\Models\GiftOrderModel;
+use App\Models\GiftVendorModel;
+
+/**
+ * Owns gift ordering — both the standalone "Send a Gift" flow and a gift
+ * attached to an existing booking, for both local gifts and vendor-sourced
+ * ones (see GiftModel::SOURCE_LOCAL / SOURCE_VENDOR). A local gift is
+ * fulfilled by an admin marking it done by hand; a vendor gift is
+ * fulfilled by actually placing the order with the vendor's API.
+ */
+class GiftOrderService
+{
+    protected GiftModel $giftModel;
+    protected GiftOrderModel $giftOrderModel;
+    protected GiftVendorModel $giftVendorModel;
+
+    public function __construct(
+        ?GiftModel $giftModel = null,
+        ?GiftOrderModel $giftOrderModel = null,
+        ?GiftVendorModel $giftVendorModel = null
+    ) {
+        $this->giftModel       = $giftModel ?? new GiftModel();
+        $this->giftOrderModel  = $giftOrderModel ?? new GiftOrderModel();
+        $this->giftVendorModel = $giftVendorModel ?? new GiftVendorModel();
+    }
+
+    /**
+     * Expected $input keys: gift_id, sender_name, sender_phone,
+     * recipient_name, recipient_phone, delivery_details, quantity.
+     * Pass $bookingId when the gift rides along with an existing greeting;
+     * leave null for the standalone "Send a Gift" flow.
+     *
+     * @return array{success: bool, message: string, giftOrder: ?array, errors: array}
+     */
+    public function createOrder(array $input, ?int $bookingId = null): array
+    {
+        $gift = $this->giftModel->find($input['gift_id'] ?? null);
+
+        if ($gift === null || (int) $gift['is_active'] !== 1) {
+            return ['success' => false, 'message' => 'Selected gift is not available.', 'giftOrder' => null, 'errors' => []];
+        }
+
+        $quantity = max((int) ($input['quantity'] ?? 1), 1);
+
+        $data = [
+            'booking_id'       => $bookingId,
+            'gift_id'          => $gift['id'],
+            'sender_name'      => $input['sender_name'] ?? null,
+            'sender_phone'     => $input['sender_phone'] ?? null,
+            'recipient_name'   => $input['recipient_name'] ?? null,
+            'recipient_phone'  => $input['recipient_phone'] ?? null,
+            'delivery_details' => $input['delivery_details'] ?? null,
+            'quantity'         => $quantity,
+            'amount'           => $gift['price'] * $quantity,
+            'currency'         => $gift['currency'],
+            'status'           => GiftOrderModel::STATUS_PENDING_PAYMENT,
+        ];
+
+        $id = $this->giftOrderModel->insert($data);
+
+        if ($id === false) {
+            return ['success' => false, 'message' => 'Could not create gift order.', 'giftOrder' => null, 'errors' => $this->giftOrderModel->errors()];
+        }
+
+        return ['success' => true, 'message' => 'Gift order created.', 'giftOrder' => $this->giftOrderModel->find($id), 'errors' => []];
+    }
+
+    /**
+     * Called by PaymentService once payment for this gift order succeeds.
+     */
+    public function confirmPaymentReceived(int $giftOrderId): bool
+    {
+        $order = $this->giftOrderModel->find($giftOrderId);
+
+        if ($order === null || $order['status'] !== GiftOrderModel::STATUS_PENDING_PAYMENT) {
+            return false;
+        }
+
+        return $this->giftOrderModel->markPaid($giftOrderId);
+    }
+
+    /**
+     * Fulfills a paid gift order. For a local gift this is an admin
+     * hand-off (e-card sent, airtime topped up) and just marks it done.
+     * For a vendor-sourced gift this actually places the order with the
+     * vendor's API first, and only marks it fulfilled if the vendor
+     * confirms.
+     *
+     * @return array{success: bool, message: string}
+     */
+    public function fulfill(int $giftOrderId): array
+    {
+        $order = $this->giftOrderModel->find($giftOrderId);
+
+        if ($order === null || $order['status'] !== GiftOrderModel::STATUS_PAID) {
+            return ['success' => false, 'message' => 'This gift order is not ready to be fulfilled.'];
+        }
+
+        $gift = $this->giftModel->find($order['gift_id']);
+
+        if ($gift === null) {
+            return ['success' => false, 'message' => 'The gift for this order no longer exists.'];
+        }
+
+        if ($gift['source'] !== GiftModel::SOURCE_VENDOR) {
+            $this->giftOrderModel->markFulfilled($giftOrderId);
+
+            return ['success' => true, 'message' => 'Gift order marked fulfilled.'];
+        }
+
+        $vendor = $this->giftVendorModel->find($gift['vendor_id']);
+
+        if ($vendor === null) {
+            return ['success' => false, 'message' => 'This gift\'s vendor is no longer configured.'];
+        }
+
+        $client = new GenericRestVendorClient($vendor);
+        $result = $client->submitOrder([
+            'vendor_product_ref' => $gift['vendor_product_ref'],
+            'quantity'           => (int) $order['quantity'],
+            'recipient_name'     => $order['recipient_name'],
+            'recipient_phone'    => $order['recipient_phone'],
+            'delivery_details'   => $order['delivery_details'],
+        ]);
+
+        if (! $result['success']) {
+            return ['success' => false, 'message' => $result['message']];
+        }
+
+        $this->giftOrderModel->markFulfilled($giftOrderId, $result['vendor_order_ref']);
+
+        return ['success' => true, 'message' => 'Order placed with vendor and marked fulfilled.'];
+    }
+
+    public function cancel(int $giftOrderId): bool
+    {
+        $order = $this->giftOrderModel->find($giftOrderId);
+
+        if ($order === null || $order['status'] === GiftOrderModel::STATUS_FULFILLED) {
+            return false;
+        }
+
+        return $this->giftOrderModel->markCancelled($giftOrderId);
+    }
+}

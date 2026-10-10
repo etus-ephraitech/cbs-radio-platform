@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<ruleset name="CBS Radio">
+    <description>PSR-12 for application code.</description>
+
+    <file>app</file>
+
+    <!-- Views are templates (HTML mixed with PHP) — PSR-12 is a standard for
+         PHP source files and produces only noise on them. -->
+    <exclude-pattern>app/Views/*</exclude-pattern>
+
+    <!-- app/Config is framework-generated and follows CodeIgniter's own
+         style, not PSR-12. Our own config classes there are small enough
+         to review by eye. -->
+    <exclude-pattern>app/Config/*</exclude-pattern>
+
+    <arg name="extensions" value="php"/>
+    <arg name="colors"/>
+
+    <!-- Line length over 120 is a PSR-12 *warning*. Report it, but don't
+         fail CI or block a commit over it. -->
+    <config name="ignore_warnings_on_exit" value="1"/>
+
+    <rule ref="PSR12"/>
+</ruleset>

@@ -1,0 +1,13 @@
+parameters:
+    level: 5
+    paths:
+        - app
+    excludePaths:
+        # "analyse" = don't report on these, but still read them so classes
+        # defined there (Config\CbsRadio, Config\Notifications) are known.
+        analyse:
+            # Templates: PHPStan reports every view variable as "undefined",
+            # because the controller passes them in at render time.
+            - app/Views
+            # Framework-generated configuration, not ours to fix.
+            - app/Config

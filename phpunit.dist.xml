@@ -10,6 +10,8 @@
     failOnRisky="true"
     failOnWarning="true"
     cacheDirectory="build/.phpunit.cache"
+    stopOnError="true" 
+    stopOnFailure="true"
 >
     <coverage pathCoverage="false" ignoreDeprecatedCodeUnits="true">
         <report>
@@ -60,5 +62,16 @@
             <env name="database.tests.DBDriver" value="MySQLi"/>
             <env name="database.tests.DBPrefix" value="tests_"/>
             -->
+
+            
+    <env name="database.tests.hostname" value="localhost"/>
+    <env name="database.tests.database" value="cbs_radio_platform_test"/>
+    <env name="database.tests.username" value="devuser"/>
+    <env name="database.tests.password" value="dev"/>
+    <env name="database.tests.DBDriver" value="MySQLi"/>
+    <env name="database.tests.DBPrefix" value="db_"/>
+    <env name="database.tests.port" value="3306"/>
+
     </php>
+    
 </phpunit>
