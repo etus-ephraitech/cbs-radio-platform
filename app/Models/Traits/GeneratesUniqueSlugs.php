@@ -34,4 +34,24 @@ trait GeneratesUniqueSlugs
             $i++;
         }
     }
+
+    /**
+     * Saves changes to one row, with its id included in what is validated.
+     *
+     * Both models check `slug` with `is_unique[table.slug,id,{id}]`, where {id} means "ignore this row's own
+     * slug". CodeIgniter fills {id} in only from the data it is validating, and update($id, $data) does not put
+     * the id there. Without this, saving a row *with its slug unchanged* is refused as a duplicate of itself:
+     * an administrator who edits only a description, or an address, is told nothing and nothing is saved.
+     *
+     * The id is stripped again before anything is written, because it is not an allowed field. (CodeIgniter also
+     * requires the using model to declare a rule for `id` itself, since {id} is a placeholder for that field.)
+     */
+    public function update($id = null, $row = null): bool
+    {
+        if (is_array($row) && (is_int($id) || is_string($id)) && ! array_key_exists($this->primaryKey, $row)) {
+            $row[$this->primaryKey] = $id;
+        }
+
+        return parent::update($id, $row);
+    }
 }

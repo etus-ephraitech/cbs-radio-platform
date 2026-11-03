@@ -49,16 +49,18 @@ class VoiceNoteUploader
     {
         $fail = static fn(string $message): array => ['valid' => false, 'message' => $message, 'duration' => null, 'verified' => false];
 
+        // A file that has already been moved is no longer an "uploaded" file, so this has to be asked first:
+        // asked second, isValid() would already have said no and this message could never be reached.
+        if ($file->hasMoved()) {
+            return $fail('This file has already been processed.');
+        }
+
         if (! $file->isValid()) {
             return $fail(match ($file->getError()) {
                 UPLOAD_ERR_INI_SIZE, UPLOAD_ERR_FORM_SIZE => 'Your voice note is larger than this server accepts. Try a shorter recording.',
                 UPLOAD_ERR_PARTIAL                        => "Your voice note didn't finish uploading. Check your connection and try again.",
                 default                                   => "The voice note didn't upload properly. Please record it again.",
             });
-        }
-
-        if ($file->hasMoved()) {
-            return $fail('This file has already been processed.');
         }
 
         if (! in_array($file->getMimeType(), $this->config->voiceNoteAllowedMimeTypes, true)) {
@@ -193,26 +195,28 @@ class VoiceNoteUploader
     }
 
     /**
-     * Whether we may run ffprobe here: running programs is allowed and the
-     * binary exists. Worked out once per request.
+     * Whether we may run ffprobe here: running programs is allowed and the binary exists. Worked out once per
+     * configured path (not once per process), so changing voiceNoteFfprobePath takes effect.
      */
     protected function ffprobeUsable(): bool
     {
-        static $usable = null;
+        static $known = [];
 
-        if ($usable !== null) {
-            return $usable;
+        $path = $this->config->voiceNoteFfprobePath;
+
+        if (array_key_exists($path, $known)) {
+            return $known[$path];
         }
 
         $disabled = array_map('trim', explode(',', (string) ini_get('disable_functions')));
 
         if (! function_exists('exec') || in_array('exec', $disabled, true)) {
-            return $usable = false;
+            return $known[$path] = false;
         }
 
-        exec('command -v ' . escapeshellarg($this->config->voiceNoteFfprobePath) . ' 2>/dev/null', $out, $code);
+        exec('command -v ' . escapeshellarg($path) . ' 2>/dev/null', $out, $code);
 
-        return $usable = ($code === 0);
+        return $known[$path] = ($code === 0);
     }
 
     /** "MP3, M4A and OGG"-style list of the formats configured as acceptable, so every message agrees with the settings. */

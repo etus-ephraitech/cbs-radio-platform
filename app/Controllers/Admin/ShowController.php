@@ -119,8 +119,10 @@ class ShowController extends BaseAdminController
      */
     protected function collectInput(): array
     {
-        $days = $this->request->getPost('days_of_week') ?? [];
-        $days = array_map('intval', $days);
+        // The form sends a list of ticked boxes, but a hand-made request can send anything: a lone value, junk, days
+        // that do not exist. Only real days (1 = Monday ... 7 = Sunday) are kept, each once.
+        $days = array_map('intval', (array) $this->request->getPost('days_of_week'));
+        $days = array_values(array_unique(array_filter($days, static fn (int $day): bool => $day >= 1 && $day <= 7)));
         sort($days);
 
         return [

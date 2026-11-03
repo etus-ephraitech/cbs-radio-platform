@@ -53,7 +53,9 @@ class BookingController extends BaseController
     {
         $category = $this->categoryModel->findBySlug($slug);
 
-        if ($category === null) {
+        // Hidden from the list, so it must not be reachable by typing its address either: the visitor would fill
+        // the whole form in and only then be told it is not available.
+        if ($category === null || (int) $category['is_active'] !== 1) {
             return redirect()->to(site_url('booking'))->with('toastr_error', 'Category not found.');
         }
 
@@ -87,7 +89,7 @@ class BookingController extends BaseController
             'recipient_name'  => 'required|max_length[150]',
             'message_text'    => 'required',
             'show_id'         => 'permit_empty|is_natural_no_zero',
-            'scheduled_date'  => 'permit_empty|valid_date',
+            'scheduled_date'  => 'permit_empty|valid_date[Y-m-d]', // not bare valid_date: it accepts "next friday" and 2026-02-30
             // The voice note is deliberately not validated here: VoiceNoteUploader checks it
             // and explains any problem in plain words (the framework's own wording is not friendly).
         ];

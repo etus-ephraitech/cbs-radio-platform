@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Libraries\VendorGiftClients\GenericRestVendorClient;
+use App\Libraries\VendorGiftClients\VendorGiftClientInterface;
 use App\Models\GiftModel;
 use App\Models\GiftVendorModel;
 
@@ -43,13 +44,22 @@ class GiftVendorSyncService
         return ['synced' => $synced, 'errors' => $errors];
     }
 
+    /**
+     * The client for one vendor. A method of its own so that a test can supply a fake, instead of the
+     * service reaching out to a real vendor's servers.
+     */
+    protected function vendorClient(array $vendor): VendorGiftClientInterface
+    {
+        return new GenericRestVendorClient($vendor);
+    }
+
     protected function syncVendor(array $vendor): int
     {
         // Every vendor currently uses the generic REST client. If a
         // vendor's API needs its own implementation, branch on
         // $vendor['slug'] here to pick a different
         // VendorGiftClientInterface implementation.
-        $client  = new GenericRestVendorClient($vendor);
+        $client  = $this->vendorClient($vendor);
         $catalog = $client->fetchCatalog();
         $count   = 0;
 

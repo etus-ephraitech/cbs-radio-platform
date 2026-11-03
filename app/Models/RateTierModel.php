@@ -31,7 +31,7 @@ class RateTierModel extends Model
         'package_level'   => 'required|max_length[100]',
         'features'        => 'permit_empty',
         'includes_on_air' => 'permit_empty|in_list[0,1]',
-        'price'           => 'required|decimal',
+        'price'           => 'required|decimal|greater_than_equal_to[0]',
         'currency'        => 'permit_empty|max_length[3]',
         'is_active'       => 'permit_empty|in_list[0,1]',
     ];

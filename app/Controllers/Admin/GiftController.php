@@ -119,7 +119,7 @@ class GiftController extends BaseAdminController
         return [
             'name'  => 'required|max_length[150]',
             'type'  => 'required|in_list[ecard,airtime,shoutout,dedication,physical]',
-            'price' => 'required|decimal',
+            'price' => 'required|decimal|greater_than_equal_to[0]',
         ];
     }
 

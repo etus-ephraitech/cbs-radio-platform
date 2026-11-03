@@ -166,13 +166,13 @@ $routes->group('admin', ['filter' => 'auth:session'], static function ($routes) 
 
     // Example messages offered on the booking form.
     $routes->group('message-templates', static function ($routes) {
-        $routes->get('/', 'Admin\\MessageTemplateController::index');
-        $routes->get('create', 'Admin\\MessageTemplateController::create');
-        $routes->post('/', 'Admin\\MessageTemplateController::store');
-        $routes->get('(:num)/edit', 'Admin\\MessageTemplateController::edit/$1');
-        $routes->post('(:num)/update', 'Admin\\MessageTemplateController::update/$1');
-        $routes->post('(:num)/deactivate', 'Admin\\MessageTemplateController::deactivate/$1');
-        $routes->post('(:num)/activate', 'Admin\\MessageTemplateController::activate/$1');
+        $routes->get('/', 'Admin\MessageTemplateController::index');
+        $routes->get('create', 'Admin\MessageTemplateController::create');
+        $routes->post('/', 'Admin\MessageTemplateController::store');
+        $routes->get('(:num)/edit', 'Admin\MessageTemplateController::edit/$1');
+        $routes->post('(:num)/update', 'Admin\MessageTemplateController::update/$1');
+        $routes->post('(:num)/deactivate', 'Admin\MessageTemplateController::deactivate/$1');
+        $routes->post('(:num)/activate', 'Admin\MessageTemplateController::activate/$1');
     });
 
     // Local gifts (fully editable) — vendor-sourced gifts are listed here

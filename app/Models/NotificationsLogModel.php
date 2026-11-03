@@ -61,7 +61,7 @@ class NotificationsLogModel extends Model
 
     public function forBooking(int $bookingId): array
     {
-        return $this->where('booking_id', $bookingId)->orderBy('created_at', 'DESC')->findAll();
+        return $this->where('booking_id', $bookingId)->orderBy('created_at', 'DESC')->orderBy('id', 'DESC')->findAll();
     }
 
     /**

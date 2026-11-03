@@ -54,8 +54,9 @@ class BookingService
      */
     public function createBooking(array $input): array
     {
-        $category = $this->categoryModel->find($input['category_id'] ?? null);
-        $rateTier = $this->rateTierModel->find($input['rate_tier_id'] ?? null);
+        // find(null) means "every row" in CodeIgniter, so an id that was not sent must never reach it.
+        $category = empty($input['category_id']) ? null : $this->categoryModel->find($input['category_id']);
+        $rateTier = empty($input['rate_tier_id']) ? null : $this->rateTierModel->find($input['rate_tier_id']);
 
         if ($category === null || (int) $category['is_active'] !== 1) {
             return $this->failure('Selected category is not available.');
@@ -124,7 +125,11 @@ class BookingService
         $bookingId = $this->bookingModel->insert($data);
 
         if ($bookingId === false) {
-            $db->transComplete();
+            // Not transComplete(): that would COMMIT, and the place reserved on the show above would stay
+            // taken by a booking that does not exist. The model refusing the data is not a database error,
+            // so the transaction would otherwise look successful.
+            $db->transRollback();
+            $db->resetTransStatus(); // see below: a failed query leaves the status false for every later transaction
 
             return ['success' => false, 'message' => 'Could not create booking.', 'booking' => null, 'errors' => $this->bookingModel->errors()];
         }
@@ -132,6 +137,11 @@ class BookingService
         $db->transComplete();
 
         if ($db->transStatus() === false) {
+            // In CodeIgniter's strict transaction mode, one failed query leaves the connection's status false and
+            // every later transaction on it then fails too, until the process ends. A web request ends at once, but
+            // a worker, a command or a test does not, so the status is cleared here.
+            $db->resetTransStatus();
+
             return $this->failure('Booking could not be saved, please try again.');
         }
 

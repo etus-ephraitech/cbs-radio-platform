@@ -57,6 +57,7 @@ class SchedulingService
         $db->transComplete();
 
         if ($db->transStatus() === false) {
+            $db->resetTransStatus(); // strict mode would otherwise fail every later transaction on this connection
             return ['success' => false, 'message' => 'Could not reserve the slot, please try again.', 'slot' => null];
         }
 

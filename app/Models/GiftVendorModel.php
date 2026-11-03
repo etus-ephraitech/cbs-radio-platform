@@ -34,6 +34,9 @@ class GiftVendorModel extends Model
     protected $updatedField  = 'updated_at';
 
     protected $validationRules = [
+        // Needed by the {id} placeholder in the slug rule below: CodeIgniter insists the placeholder's field
+        // has a rule of its own. See GeneratesUniqueSlugs::update().
+        'id'          => 'permit_empty|is_natural_no_zero',
         'name'         => 'required|max_length[150]',
         'slug'         => 'required|max_length[100]|is_unique[gift_vendors.slug,id,{id}]',
         'api_base_url' => 'permit_empty|valid_url',

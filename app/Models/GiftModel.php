@@ -36,7 +36,7 @@ class GiftModel extends Model
         'name'               => 'required|max_length[150]',
         'type'               => 'required|in_list[ecard,airtime,shoutout,dedication,physical]',
         'description'        => 'permit_empty',
-        'price'              => 'required|decimal',
+        'price'              => 'required|decimal|greater_than_equal_to[0]',
         'currency'           => 'permit_empty|max_length[3]',
         'is_active'          => 'permit_empty|in_list[0,1]',
         'source'             => 'permit_empty|in_list[local,vendor]',

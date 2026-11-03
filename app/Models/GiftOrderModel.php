@@ -79,7 +79,7 @@ class GiftOrderModel extends Model
             $this->where('gift_orders.status', $status);
         }
 
-        return $this->orderBy('gift_orders.created_at', 'DESC')->findAll();
+        return $this->orderBy('gift_orders.created_at', 'DESC')->orderBy('gift_orders.id', 'DESC')->findAll();
     }
 
     /**
@@ -92,6 +92,7 @@ class GiftOrderModel extends Model
             ->join('gifts', 'gifts.id = gift_orders.gift_id')
             ->where('gift_orders.booking_id', $bookingId)
             ->orderBy('gift_orders.created_at', 'ASC')
+            ->orderBy('gift_orders.id', 'ASC')
             ->findAll();
     }
 

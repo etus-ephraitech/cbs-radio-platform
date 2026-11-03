@@ -27,6 +27,9 @@ class CategoryModel extends Model
     protected $updatedField  = 'updated_at';
 
     protected $validationRules = [
+        // Needed by the {id} placeholder in the slug rule below: CodeIgniter insists the placeholder's field
+        // has a rule of its own. See GeneratesUniqueSlugs::update().
+        'id'          => 'permit_empty|is_natural_no_zero',
         'name'        => 'required|max_length[100]',
         'slug'        => 'required|max_length[100]|is_unique[categories.slug,id,{id}]',
         'description' => 'permit_empty',

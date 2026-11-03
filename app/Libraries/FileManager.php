@@ -40,25 +40,53 @@ class FileManager
 
     public function delete(string $relativePath): bool
     {
-        $full = $this->fullPath($relativePath);
+        $full = $this->safeExistingFile($relativePath);
 
-        if (is_file($full)) {
-            return unlink($full);
-        }
-
-        return false;
+        return $full !== null && unlink($full);
     }
 
     public function exists(string $relativePath): bool
     {
-        return is_file($this->fullPath($relativePath));
+        return $this->safeExistingFile($relativePath) !== null;
     }
 
     public function sizeKB(string $relativePath): float
     {
-        $full = $this->fullPath($relativePath);
+        $full = $this->safeExistingFile($relativePath);
 
-        return is_file($full) ? filesize($full) / 1024 : 0.0;
+        return $full !== null ? filesize($full) / 1024 : 0.0;
+    }
+
+    /**
+     * CodeIgniter's own working folders inside writable/. Nothing in them is ever something to serve or delete.
+     */
+    private const PRIVATE_DIRECTORIES = ['cache', 'database', 'debugbar', 'logs', 'session', 'sessions'];
+
+    /**
+     * The real path of an existing file this class may touch, or null.
+     *
+     * A stored path comes from the database, so it is not trusted: "../" must not climb out of writable/ (nor a
+     * symbolic link lead out of it), and the session and log folders there must not be served as a "voice note".
+     * Everything a caller asks for goes through here.
+     */
+    protected function safeExistingFile(string $relativePath): ?string
+    {
+        $root = realpath(WRITEPATH);
+        $real = realpath($this->fullPath($relativePath));
+
+        if ($root === false || $real === false || ! is_file($real)) {
+            return null;
+        }
+
+        $prefix = rtrim($root, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
+
+        if (! str_starts_with($real, $prefix)) {
+            return null;
+        }
+
+        $topLevel = explode(DIRECTORY_SEPARATOR, substr($real, strlen($prefix)))[0];
+
+        return in_array($topLevel, self::PRIVATE_DIRECTORIES, true) ? null : $real;
     }
 
     /**
@@ -84,9 +112,9 @@ class FileManager
      */
     public function streamInline(ResponseInterface $response, string $relativePath): ResponseInterface
     {
-        $full = $this->fullPath($relativePath);
+        $full = $this->safeExistingFile($relativePath);
 
-        if (! is_file($full)) {
+        if ($full === null) {
             throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound();
         }
 

@@ -77,7 +77,7 @@ class BookingModel extends Model
     {
         return $this->where('status', self::STATUS_PENDING_MODERATION)
             ->orderBy('created_at', 'ASC')
-            ->orderBy('id', 'DESC')
+            ->orderBy('id', 'ASC')
             ->findAll();
     }
 
@@ -90,7 +90,7 @@ class BookingModel extends Model
         return $this->where('show_slot_id', $showSlotId)
             ->where('status', self::STATUS_APPROVED)
             ->orderBy('created_at', 'ASC')
-            ->orderBy('id', 'DESC')
+            ->orderBy('id', 'ASC')
             ->findAll();
     }
 
@@ -155,7 +155,6 @@ class BookingModel extends Model
         $this->adminBaseQuery($filters);
 
         return $this->orderBy('bookings.created_at', 'DESC')
-            ->orderBy('bookings.id', 'DESC')
             ->orderBy('bookings.id', 'DESC')
             ->findAll($limit, $offset);
     }

@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Libraries\VendorGiftClients\GenericRestVendorClient;
+use App\Libraries\VendorGiftClients\VendorGiftClientInterface;
 use App\Models\GiftModel;
 use App\Models\GiftOrderModel;
 use App\Models\GiftVendorModel;
@@ -40,7 +41,7 @@ class GiftOrderService
      */
     public function createOrder(array $input, ?int $bookingId = null): array
     {
-        $gift = $this->giftModel->find($input['gift_id'] ?? null);
+        $gift = empty($input['gift_id']) ? null : $this->giftModel->find($input['gift_id']); // not find(null): that is every row
 
         if ($gift === null || (int) $gift['is_active'] !== 1) {
             return ['success' => false, 'message' => 'Selected gift is not available.', 'giftOrder' => null, 'errors' => []];
@@ -114,13 +115,14 @@ class GiftOrderService
             return ['success' => true, 'message' => 'Gift order marked fulfilled.'];
         }
 
-        $vendor = $this->giftVendorModel->find($gift['vendor_id']);
+        // find(null) means "every row" in CodeIgniter, so a gift with no vendor must never reach it.
+        $vendor = empty($gift['vendor_id']) ? null : $this->giftVendorModel->find($gift['vendor_id']);
 
         if ($vendor === null) {
             return ['success' => false, 'message' => 'This gift\'s vendor is no longer configured.'];
         }
 
-        $client = new GenericRestVendorClient($vendor);
+        $client = $this->vendorClient($vendor);
         $result = $client->submitOrder([
             'vendor_product_ref' => $gift['vendor_product_ref'],
             'quantity'           => (int) $order['quantity'],
@@ -136,6 +138,15 @@ class GiftOrderService
         $this->giftOrderModel->markFulfilled($giftOrderId, $result['vendor_order_ref']);
 
         return ['success' => true, 'message' => 'Order placed with vendor and marked fulfilled.'];
+    }
+
+    /**
+     * The client for one vendor. A method of its own so that a test can supply a fake, instead of the
+     * service reaching out to a real vendor's servers.
+     */
+    protected function vendorClient(array $vendor): VendorGiftClientInterface
+    {
+        return new GenericRestVendorClient($vendor);
     }
 
     public function cancel(int $giftOrderId): bool
