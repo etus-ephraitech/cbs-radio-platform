@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 36 36" role="img" aria-label="CBS Radio Admin">
+  <rect x="2" y="2" width="32" height="32" rx="8" fill="#D62828"/>
+  <path d="M11.5 19a6.5 6.5 0 0 1 13 0M7.5 19a10.5 10.5 0 0 1 21 0" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/>
+  <circle cx="18" cy="19" r="2.6" fill="#fff"/>
+  <circle cx="29" cy="7" r="4" fill="#F4A300" stroke="#D62828" stroke-width="1.5"/>
+</svg>

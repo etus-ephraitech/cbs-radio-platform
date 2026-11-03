@@ -5,10 +5,14 @@ namespace App\Cells;
 use CodeIgniter\View\Cells\Cell;
 
 /**
- * The header block every admin page opens with: optional "back" link,
- * title, optional subtitle, and optional primary action button. Keeps
- * every admin screen's top edge identical so the flow between them feels
- * like one product.
+ * The header block every staff page opens with: optional "back" link,
+ * title, optional subtitle, and up to two action buttons. Keeps every
+ * screen's top edge identical so the flow between them feels like one
+ * product.
+ *
+ * The markup lives in a view so each UI version can draw it its own way:
+ * cells/page_header (the original admin) and v1/cells/page_header (the
+ * dashboard theme, with a breadcrumb), picked by ui_view().
  *
  * Every property needs a default — the framework only fills properties
  * that are initialised (see PropertiesTrait::getPublicProperties()).
@@ -17,40 +21,41 @@ use CodeIgniter\View\Cells\Cell;
  *       'title'       => 'Categories',
  *       'subtitle'    => 'What listeners can book.',
  *       'actionUrl'   => site_url('admin/categories/create'),
- *       'actionLabel' => '+ New category',
+ *       'actionLabel' => 'New category',
+ *       'actionIcon'  => 'ri-add-line',          // v1 only; a Remix/Tabler/Bootstrap icon class
  *   ]) ?>
  */
 class PageHeader extends Cell
 {
     public string $title = '';
     public string $subtitle = '';
+
     public string $backUrl = '';
     public string $backLabel = 'Back';
+
     public string $actionUrl = '';
     public string $actionLabel = '';
+    public string $actionIcon = '';
+
+    public string $secondaryActionUrl = '';
+    public string $secondaryActionLabel = '';
+    public string $secondaryActionIcon = '';
 
     public function render(): string
     {
-        $html = '<div class="page-header d-flex justify-content-between align-items-start gap-3"><div>';
+        helper('ui');
 
-        if ($this->backUrl !== '') {
-            $html .= '<p class="mb-1"><a href="' . esc($this->backUrl, 'attr') . '" class="text-muted small text-decoration-none">&larr; '
-                . esc($this->backLabel) . '</a></p>';
-        }
-
-        $html .= '<h1 class="h3 mb-1">' . esc($this->title) . '</h1>';
-
-        if ($this->subtitle !== '') {
-            $html .= '<p class="text-muted mb-0 small">' . esc($this->subtitle) . '</p>';
-        }
-
-        $html .= '</div>';
-
-        if ($this->actionUrl !== '') {
-            $html .= '<a href="' . esc($this->actionUrl, 'attr') . '" class="btn btn-cbs-primary btn-sm text-nowrap">'
-                . esc($this->actionLabel) . '</a>';
-        }
-
-        return $html . '</div>';
+        return ui_view('cells/page_header', [
+            'title'                => $this->title,
+            'subtitle'             => $this->subtitle,
+            'backUrl'              => $this->backUrl,
+            'backLabel'            => $this->backLabel,
+            'actionUrl'            => $this->actionUrl,
+            'actionLabel'          => $this->actionLabel,
+            'actionIcon'           => $this->actionIcon,
+            'secondaryActionUrl'   => $this->secondaryActionUrl,
+            'secondaryActionLabel' => $this->secondaryActionLabel,
+            'secondaryActionIcon'  => $this->secondaryActionIcon,
+        ], ['saveData' => false, 'debug' => false]);
     }
 }

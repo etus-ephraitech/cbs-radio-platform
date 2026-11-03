@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="140" height="36" viewBox="0 0 140 36" role="img" aria-label="CBS Radio Admin">
+  <rect x="0" y="6" width="24" height="24" rx="6" fill="#D62828"/>
+  <path d="M7 18a5 5 0 0 1 10 0M4 18a8 8 0 0 1 16 0" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/>
+  <circle cx="12" cy="18" r="2" fill="#fff"/>
+  <text x="32" y="23.5" font-family="'Space Grotesk','Segoe UI',system-ui,sans-serif" font-size="16" font-weight="700" fill="#101B33" textLength="74" lengthAdjust="spacingAndGlyphs">CBS Radio</text>
+  <rect x="110" y="11" width="30" height="14" rx="3" fill="#F4A300"/>
+  <text x="125" y="21.2" text-anchor="middle" textLength="24" lengthAdjust="spacingAndGlyphs" font-family="'Segoe UI',system-ui,sans-serif" font-size="7.5" font-weight="700" fill="#101B33">ADMIN</text>
+</svg>
