@@ -66,6 +66,9 @@
     "cs-fix": "phpcbf --standard=PSR12 app/",
     "analyse": "phpstan analyse app/ --level=5",
     "test": "phpunit",
+    "test:unit": "phpunit --testsuite unit",
+    "test:database": "phpunit --testsuite database",
+    "test:feature": "phpunit --testsuite feature",
     "test:debug": "phpunit --stop-on-error --stop-on-failure --testdox"
   }
 }
