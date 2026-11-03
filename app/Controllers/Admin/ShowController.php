@@ -19,14 +19,14 @@ class ShowController extends BaseAdminController
 
     public function index()
     {
-        return view('admin/shows/index', [
+        return ui_view('admin/shows/index', [
             'shows' => $this->showModel->orderBy('start_time', 'ASC')->findAll(),
         ]);
     }
 
     public function create()
     {
-        return view('admin/shows/form', ['show' => null]);
+        return ui_view('admin/shows/form', ['show' => null]);
     }
 
     public function store()
@@ -54,7 +54,7 @@ class ShowController extends BaseAdminController
             return redirect()->to(site_url('admin/shows'))->with('toastr_error', 'Show not found.');
         }
 
-        return view('admin/shows/form', ['show' => $show]);
+        return ui_view('admin/shows/form', ['show' => $show]);
     }
 
     public function update(int $id)

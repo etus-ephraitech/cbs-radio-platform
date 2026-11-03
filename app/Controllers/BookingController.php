@@ -41,7 +41,7 @@ class BookingController extends BaseController
      */
     public function index()
     {
-        return view('booking/categories', [
+        return ui_view('booking/categories', [
             'categories' => $this->categoryModel->active(),
         ]);
     }
@@ -61,7 +61,7 @@ class BookingController extends BaseController
 
         $isoDayOfWeek = (int) date('N', strtotime('today'));
 
-        return view('booking/create', [
+        return ui_view('booking/create', [
             'category'        => $category,
             'rateTiers'       => $this->rateTierModel->forCategory($category['id']),
             'shows'           => $this->schedulingService->showsForDay($isoDayOfWeek),
@@ -156,7 +156,7 @@ class BookingController extends BaseController
 
         $result = $this->paymentService->initiateForBooking($booking);
 
-        return view('booking/pay', [
+        return ui_view('booking/pay', [
             'booking'  => $booking,
             'result'   => $result,
             'payments' => config('Payments'),
@@ -175,6 +175,6 @@ class BookingController extends BaseController
             return redirect()->to(site_url('booking'))->with('toastr_error', 'Booking not found.');
         }
 
-        return view('booking/confirmation', ['booking' => $booking]);
+        return ui_view('booking/confirmation', ['booking' => $booking]);
     }
 }

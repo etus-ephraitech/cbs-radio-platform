@@ -44,7 +44,7 @@ class NotificationController extends BaseAdminController
         $totalPages = max((int) ceil($total / $perPage), 1);
         $page       = min(max((int) $this->request->getGet('page'), 1), $totalPages);
 
-        return view('admin/notifications/index', [
+        return ui_view('admin/notifications/index', [
             'notifications' => $this->notificationsLogModel->filtered($filters, $perPage, ($page - 1) * $perPage),
             'filters'       => $filters,
             'page'          => $page,

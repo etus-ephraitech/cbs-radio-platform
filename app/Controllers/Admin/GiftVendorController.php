@@ -24,14 +24,14 @@ class GiftVendorController extends BaseAdminController
 
     public function index()
     {
-        return view('admin/gift_vendors/index', [
+        return ui_view('admin/gift_vendors/index', [
             'vendors' => $this->giftVendorModel->orderBy('name', 'ASC')->findAll(),
         ]);
     }
 
     public function create()
     {
-        return view('admin/gift_vendors/form', ['vendor' => null]);
+        return ui_view('admin/gift_vendors/form', ['vendor' => null]);
     }
 
     public function store()
@@ -69,7 +69,7 @@ class GiftVendorController extends BaseAdminController
             return redirect()->to(site_url('admin/gift-vendors'))->with('toastr_error', 'Vendor not found.');
         }
 
-        return view('admin/gift_vendors/form', ['vendor' => $vendor]);
+        return ui_view('admin/gift_vendors/form', ['vendor' => $vendor]);
     }
 
     public function update(int $id)

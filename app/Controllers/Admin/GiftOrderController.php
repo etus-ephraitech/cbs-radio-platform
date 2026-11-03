@@ -25,7 +25,7 @@ class GiftOrderController extends BaseAdminController
     {
         $status = $this->request->getGet('status');
 
-        return view('admin/gift_orders/index', [
+        return ui_view('admin/gift_orders/index', [
             'giftOrders' => $this->giftOrderModel->adminList($status ?: null),
             'status'     => $status,
         ]);

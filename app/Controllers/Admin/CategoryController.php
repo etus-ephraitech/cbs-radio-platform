@@ -20,14 +20,14 @@ class CategoryController extends BaseAdminController
 
     public function index()
     {
-        return view('admin/categories/index', [
+        return ui_view('admin/categories/index', [
             'categories' => $this->categoryModel->orderBy('name', 'ASC')->findAll(),
         ]);
     }
 
     public function create()
     {
-        return view('admin/categories/form', [
+        return ui_view('admin/categories/form', [
             'category' => null,
         ]);
     }
@@ -67,7 +67,7 @@ class CategoryController extends BaseAdminController
             return redirect()->to(site_url('admin/categories'))->with('toastr_error', 'Category not found.');
         }
 
-        return view('admin/categories/form', ['category' => $category]);
+        return ui_view('admin/categories/form', ['category' => $category]);
     }
 
     public function update(int $id)

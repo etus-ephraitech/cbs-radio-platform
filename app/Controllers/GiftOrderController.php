@@ -32,7 +32,7 @@ class GiftOrderController extends BaseController
      */
     public function index()
     {
-        return view('gifts/catalog', [
+        return ui_view('gifts/catalog', [
             'gifts'     => $this->giftModel->active(),
             'bookingId' => $this->request->getGet('booking_id'),
         ]);
@@ -87,7 +87,7 @@ class GiftOrderController extends BaseController
 
         $result = $this->paymentService->initiateForGiftOrder($giftOrder);
 
-        return view('gifts/pay', [
+        return ui_view('gifts/pay', [
             'giftOrder' => $giftOrder,
             'result'    => $result,
             'payments'  => config('Payments'),
@@ -103,6 +103,6 @@ class GiftOrderController extends BaseController
             return redirect()->to(site_url('gifts'))->with('toastr_error', 'Gift order not found.');
         }
 
-        return view('gifts/confirmation', ['giftOrder' => $giftOrder]);
+        return ui_view('gifts/confirmation', ['giftOrder' => $giftOrder]);
     }
 }

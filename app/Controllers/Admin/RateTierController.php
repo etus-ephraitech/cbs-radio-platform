@@ -28,14 +28,14 @@ class RateTierController extends BaseAdminController
 
     public function index()
     {
-        return view('admin/rate_tiers/index', [
+        return ui_view('admin/rate_tiers/index', [
             'rateTiers' => $this->rateTierModel->allWithCategory(),
         ]);
     }
 
     public function create()
     {
-        return view('admin/rate_tiers/form', [
+        return ui_view('admin/rate_tiers/form', [
             'rateTier'   => null,
             'categories' => $this->categoryModel->active(),
             'config'     => $this->config,
@@ -65,7 +65,7 @@ class RateTierController extends BaseAdminController
             return redirect()->to(site_url('admin/rate-tiers'))->with('toastr_error', 'Package not found.');
         }
 
-        return view('admin/rate_tiers/form', [
+        return ui_view('admin/rate_tiers/form', [
             'rateTier'   => $rateTier,
             'categories' => $this->categoryModel->active(),
             'config'     => $this->config,

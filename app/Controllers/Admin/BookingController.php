@@ -43,7 +43,7 @@ class BookingController extends BaseAdminController
         $totalPages = max((int) ceil($total / $perPage), 1);
         $page       = min(max((int) $this->request->getGet('page'), 1), $totalPages);
 
-        return view('admin/bookings/index', [
+        return ui_view('admin/bookings/index', [
             'bookings'   => $this->bookingModel->adminSearch($filters, $perPage, ($page - 1) * $perPage),
             'categories' => (new CategoryModel())->orderBy('name', 'ASC')->findAll(),
             'statuses'   => BookingModel::STATUSES,
@@ -62,7 +62,7 @@ class BookingController extends BaseAdminController
             return redirect()->to(site_url('admin/bookings'))->with('toastr_error', 'Booking not found.');
         }
 
-        return view('admin/bookings/show', [
+        return ui_view('admin/bookings/show', [
             'booking'       => $booking,
             'payments'      => (new PaymentModel())->where('booking_id', $bookingId)->orderBy('created_at', 'ASC')->findAll(),
             'giftOrders'    => (new GiftOrderModel())->forBookingWithGift($bookingId),

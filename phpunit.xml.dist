@@ -51,6 +51,12 @@
         <env name="database.tests.DBDriver" value="MySQLi"/>
         <env name="database.tests.DBPrefix" value=""/>
 
+        <!--
+            The suite runs against the themed admin (app/Views/v1) whatever a developer's .env says, so a run means
+            the same thing on every machine. ThemeVersionsTest renders every staff page under the base views too.
+        -->
+        <env name="ui_version" value="v1" force="true"/>
+
         <!-- Never let a real SMS gateway key from a developer's .env send a message during a test. -->
         <env name="sms.apiKey" value=""/>
     </php>

@@ -31,7 +31,7 @@ class DashboardController extends BaseAdminController
 
         $lastSync = $giftModel->selectMax('synced_at')->where('source', GiftModel::SOURCE_VENDOR)->first();
 
-        return view('admin/dashboard', [
+        return ui_view('admin/dashboard', [
             'health'    => (new SettingsManager())->health(),
             'attention' => [
                 'pendingModeration' => $bookingModel->where('status', BookingModel::STATUS_PENDING_MODERATION)->countAllResults(),

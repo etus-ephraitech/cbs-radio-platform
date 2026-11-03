@@ -24,14 +24,14 @@ class MessageTemplateController extends BaseAdminController
 
     public function index()
     {
-        return view('admin/message_templates/index', [
+        return ui_view('admin/message_templates/index', [
             'templates' => $this->templateModel->adminList(),
         ]);
     }
 
     public function create()
     {
-        return view('admin/message_templates/form', $this->formData(null));
+        return ui_view('admin/message_templates/form', $this->formData(null));
     }
 
     public function store()
@@ -57,7 +57,7 @@ class MessageTemplateController extends BaseAdminController
             return redirect()->to(site_url('admin/message-templates'))->with('toastr_error', 'Template not found.');
         }
 
-        return view('admin/message_templates/form', $this->formData($template));
+        return ui_view('admin/message_templates/form', $this->formData($template));
     }
 
     public function update(int $id)

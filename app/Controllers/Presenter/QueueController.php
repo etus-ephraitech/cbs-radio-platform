@@ -33,7 +33,7 @@ class QueueController extends BaseAdminController
      */
     public function index()
     {
-        return view('presenter/queue_index', [
+        return ui_view('presenter/queue_index', [
             'showQueues' => $this->queueService->todaysQueuesByShow(),
         ]);
     }
@@ -45,7 +45,7 @@ class QueueController extends BaseAdminController
     {
         $date = $this->request->getGet('date');
 
-        return view('presenter/queue_show', [
+        return ui_view('presenter/queue_show', [
             'showId' => $showId,
             'date'   => $date ?? date('Y-m-d'),
             'queue'  => $this->queueService->queueForShow($showId, $date),

@@ -201,3 +201,81 @@ if (! function_exists('cbs_sweetalert_confirm')) {
             . "}); return false;";
     }
 }
+
+/*
+ * ---------------------------------------------------------------------------
+ * Versioned views (UI themes)
+ * ---------------------------------------------------------------------------
+ * `ui_version` in .env names a folder under app/Views (e.g. "v1") holding a
+ * themed version of some views. A view is taken from that folder when the
+ * folder has it, and from app/Views otherwise — so a theme only needs to
+ * contain the screens it changes, and an empty ui_version (or one naming a
+ * folder that does not exist) gives the original UI untouched.
+ *
+ * Controllers render with ui_view('admin/bookings/index', $data); themed
+ * views extend ui_layout('admin'). Views in the base set keep extending their
+ * own layout by name, so the original UI stays a complete, consistent set.
+ */
+
+if (! function_exists('ui_version')) {
+    /**
+     * The active UI version: a single folder name, or '' for the base views.
+     * Anything that is not a plain folder name (a path, "..", spaces) is
+     * ignored rather than trusted, since it ends up in a file path.
+     */
+    function ui_version(): string
+    {
+        $version = trim((string) env('ui_version', ''));
+
+        return preg_match('/^[A-Za-z0-9_-]+$/', $version) === 1 ? $version : '';
+    }
+}
+
+if (! function_exists('ui_view_path')) {
+    /**
+     * The view name to render for $view under the active UI version: the
+     * versioned one when it exists, the base one otherwise.
+     */
+    function ui_view_path(string $view): string
+    {
+        static $exists = [];
+
+        $view    = ltrim($view, '/');
+        $version = ui_version();
+
+        if ($version === '') {
+            return $view;
+        }
+
+        $candidate = $version . '/' . $view;
+        $file      = APPPATH . 'Views/' . $candidate . (str_ends_with($candidate, '.php') ? '' : '.php');
+
+        $exists[$file] ??= is_file($file);
+
+        return $exists[$file] ? $candidate : $view;
+    }
+}
+
+if (! function_exists('ui_view')) {
+    /**
+     * view(), resolved through the active UI version.
+     *
+     * @param array<string, mixed> $data
+     * @param array<string, mixed> $options
+     */
+    function ui_view(string $view, array $data = [], array $options = []): string
+    {
+        return view(ui_view_path($view), $data, $options);
+    }
+}
+
+if (! function_exists('ui_layout')) {
+    /**
+     * The layout a themed view extends: <version>/layouts/<name> when the
+     * version has it, layouts/<name> otherwise.
+     */
+    function ui_layout(string $layout = 'main'): string
+    {
+        return ui_view_path('layouts/' . $layout);
+    }
+}

@@ -36,7 +36,7 @@ class SettingController extends BaseAdminController
             return redirect()->to(site_url('admin/settings'))->with('toastr_error', 'Unknown settings section.');
         }
 
-        return view('admin/settings/index', [
+        return ui_view('admin/settings/index', [
             'groups'  => Registry::groups(),
             'group'   => $group,
             'items'   => $this->settings->forGroup($group),

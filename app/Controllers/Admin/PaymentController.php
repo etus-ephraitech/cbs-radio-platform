@@ -25,7 +25,7 @@ class PaymentController extends BaseAdminController
     {
         $status = $this->request->getGet('status');
 
-        return view('admin/payments/index', [
+        return ui_view('admin/payments/index', [
             'payments' => $status ? $this->paymentModel->where('status', $status)->findAll() : $this->paymentModel->findAll(),
             'status'   => $status,
         ]);

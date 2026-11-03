@@ -32,7 +32,7 @@ class LandingController extends BaseController
         $cbs   = config('CbsRadio');
         $shows = $this->showsWithStatus();
 
-        return view('landing', [
+        return ui_view('landing', [
             'lean'            => true,
             'fullTitle'       => 'CBS Radio — send a greeting or tribute to be read on air',
             'metaDescription' => $cbs->heroSubheadline,

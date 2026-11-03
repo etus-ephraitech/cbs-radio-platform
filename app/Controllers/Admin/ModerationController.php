@@ -27,7 +27,7 @@ class ModerationController extends BaseAdminController
 
     public function index()
     {
-        return view('admin/moderation/index', [
+        return ui_view('admin/moderation/index', [
             'bookings' => $this->bookingModel->pendingModeration(),
         ]);
     }

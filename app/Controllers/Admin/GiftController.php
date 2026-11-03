@@ -27,7 +27,7 @@ class GiftController extends BaseAdminController
 
     public function index()
     {
-        return view('admin/gifts/index', [
+        return ui_view('admin/gifts/index', [
             'localGifts'  => $this->giftModel->localOnly(),
             'vendorGifts' => $this->giftModel->vendorSourced(),
         ]);
@@ -35,7 +35,7 @@ class GiftController extends BaseAdminController
 
     public function create()
     {
-        return view('admin/gifts/form', ['gift' => null, 'config' => $this->config]);
+        return ui_view('admin/gifts/form', ['gift' => null, 'config' => $this->config]);
     }
 
     public function store()
@@ -65,7 +65,7 @@ class GiftController extends BaseAdminController
             return redirect()->to(site_url('admin/gifts'))->with('toastr_error', 'Vendor-sourced gifts are managed by the vendor sync, not edited here.');
         }
 
-        return view('admin/gifts/form', ['gift' => $gift, 'config' => $this->config]);
+        return ui_view('admin/gifts/form', ['gift' => $gift, 'config' => $this->config]);
     }
 
     public function update(int $id)
