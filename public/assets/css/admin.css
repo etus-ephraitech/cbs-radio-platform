@@ -143,3 +143,37 @@ a.cbs-stat:hover .cbs-stat-label {
         margin-bottom: 0.6rem;
     }
 }
+
+/* ----------------------------------------------------------- status badges
+ * The status helpers (cbs_booking_status_badge() and friends) print Bootstrap's solid badges, which the original
+ * admin also uses. Here they take the theme's soft style instead: a tint of the colour with the colour as text,
+ * which reads in both light and dark mode. Done in CSS so the helpers stay shared by both UIs.
+ */
+.badge.bg-primary,
+.badge.bg-secondary,
+.badge.bg-success,
+.badge.bg-info,
+.badge.bg-warning,
+.badge.bg-danger,
+.badge.bg-dark {
+    font-weight: 600;
+}
+
+.badge.bg-primary { background-color: rgba(var(--primary-rgb), 0.12) !important; color: rgb(var(--primary-rgb)) !important; }
+.badge.bg-secondary { background-color: rgba(var(--secondary-rgb), 0.12) !important; color: rgb(var(--secondary-rgb)) !important; }
+.badge.bg-success { background-color: rgba(var(--success-rgb), 0.14) !important; color: rgb(var(--success-rgb)) !important; }
+.badge.bg-info,
+.badge.bg-info.text-dark { background-color: rgba(var(--info-rgb), 0.14) !important; color: rgb(var(--info-rgb)) !important; }
+.badge.bg-warning,
+.badge.bg-warning.text-dark { background-color: rgba(var(--warning-rgb), 0.16) !important; color: rgb(var(--warning-rgb)) !important; }
+.badge.bg-danger { background-color: rgba(var(--danger-rgb), 0.12) !important; color: rgb(var(--danger-rgb)) !important; }
+.badge.bg-dark { background-color: rgba(var(--dark-rgb), 0.1) !important; color: var(--default-text-color) !important; }
+
+/* ------------------------------------------------------------ pagination */
+.cbs-pagination .pagination {
+    gap: 0.25rem;
+}
+
+.cbs-pagination .page-link {
+    border-radius: 0.375rem !important;
+}
