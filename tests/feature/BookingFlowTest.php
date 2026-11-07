@@ -562,4 +562,46 @@ final class BookingFlowTest extends AppFeatureTestCase
         $this->assertStringContainsString('Voice note', $this->get('booking/' . $with['id'] . '/confirmation')->getBody());
         $this->assertStringNotContainsString('Voice note', $this->get('booking/' . $without['id'] . '/confirmation')->getBody());
     }
+
+    // ------------------------------------------------------------------ when it airs
+
+    public function testAShowWithoutADayIsRefusedRatherThanQuietlyIgnored(): void
+    {
+        $show = $this->makeShow(['name' => 'Morning Express']);
+
+        $this->post('booking', $this->form(['show_id' => $show['id']]))->assertRedirect();
+
+        $this->assertSame(['scheduled_date' => 'Choose the day you would like it read on that show.'], $this->flash('errors'));
+        $this->assertSame(0, $this->bookingCount());
+    }
+
+    public function testADayInThePastIsRefused(): void
+    {
+        $this->post('booking', $this->form(['scheduled_date' => date('Y-m-d', strtotime('-1 day'))]))->assertRedirect();
+
+        $this->assertSame(['scheduled_date' => 'Choose today or a later date for your greeting.'], $this->flash('errors'));
+        $this->assertSame(0, $this->bookingCount());
+    }
+
+    public function testAShowCannotBeBookedOnADayItIsNotOnAir(): void
+    {
+        $show   = $this->makeShow(['name' => 'Weekend Vibes', 'days_of_week' => '6,7']);
+        $monday = date('Y-m-d', strtotime('next monday'));
+
+        $this->post('booking', $this->form(['show_id' => $show['id'], 'scheduled_date' => $monday]))->assertRedirect();
+
+        $this->assertSame('Weekend Vibes is not on air on Mondays. Please choose another day or show.', $this->flash('toastr_error'));
+        $this->assertSame(0, $this->bookingCount());
+    }
+
+    public function testAShowCanBeBookedOnADayItIsOnAir(): void
+    {
+        $show     = $this->makeShow(['name' => 'Weekend Vibes', 'days_of_week' => '6,7']);
+        $saturday = date('Y-m-d', strtotime('next saturday'));
+
+        $this->post('booking', $this->form(['show_id' => $show['id'], 'scheduled_date' => $saturday]))->assertRedirect();
+
+        $this->assertSame(1, $this->bookingCount());
+        $this->assertNotNull($this->latestBooking()['show_slot_id']);
+    }
 }

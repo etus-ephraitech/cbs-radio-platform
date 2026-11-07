@@ -42,6 +42,13 @@ class SchedulingService
             return ['success' => false, 'message' => 'This show is not available for booking.', 'slot' => null];
         }
 
+        // A show that doesn't run that day can't air the greeting, however many places are free.
+        $timestamp = strtotime($date);
+
+        if ($timestamp !== false && ! $this->showModel->runsOn($show, (int) date('N', $timestamp))) {
+            return ['success' => false, 'message' => $show['name'] . ' is not on air on ' . date('l', $timestamp) . 's. Please choose another day or show.', 'slot' => null];
+        }
+
         $db = db_connect();
         $db->transStart();
 

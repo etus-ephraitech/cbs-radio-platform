@@ -98,6 +98,18 @@ class BookingController extends BaseController
             return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
         }
 
+        // A greeting can't be read out in the past. (The form's date picker starts at today; this catches the rest.)
+        $date = (string) $this->request->getPost('scheduled_date');
+
+        if ($date !== '' && $date < date('Y-m-d')) {
+            return redirect()->back()->withInput()->with('errors', ['scheduled_date' => 'Choose today or a later date for your greeting.']);
+        }
+
+        // A show without a day would be quietly ignored, and the visitor would think they had booked it.
+        if ((string) $this->request->getPost('show_id') !== '' && $date === '') {
+            return redirect()->back()->withInput()->with('errors', ['scheduled_date' => 'Choose the day you would like it read on that show.']);
+        }
+
         $input = $this->request->getPost([
             'category_id', 'rate_tier_id', 'sender_name', 'sender_phone',
             'sender_email', 'recipient_name', 'message_text', 'show_id', 'scheduled_date',

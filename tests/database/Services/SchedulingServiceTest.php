@@ -125,4 +125,17 @@ final class SchedulingServiceTest extends AppTestCase
         $this->assertSame(['Every day', 'Weekdays'], $names(3), 'Wednesday');
         $this->assertSame(['Every day', 'Weekend'], $names(7), 'Sunday');
     }
+
+    public function testAShowCannotBeReservedOnADayItIsNotOnAir(): void
+    {
+        $show = $this->makeShow(['name' => 'Weekend Vibes', 'days_of_week' => '6,7']);
+
+        $monday   = $this->scheduling->reserveSlot($show['id'], '2026-12-21'); // a Monday
+        $saturday = $this->scheduling->reserveSlot($show['id'], '2026-12-26');
+
+        $this->assertFalse($monday['success']);
+        $this->assertSame('Weekend Vibes is not on air on Mondays. Please choose another day or show.', $monday['message']);
+        $this->assertTrue($saturday['success']);
+        $this->assertSame(1, $this->db->table('show_slots')->countAllResults(), 'No slot is made for the day it does not run.');
+    }
 }
