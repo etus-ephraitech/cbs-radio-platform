@@ -146,7 +146,12 @@ $canCancel   = ! in_array($booking['status'], ['aired', 'cancelled'], true);
                         <tbody>
                             <?php foreach ($giftOrders as $order): ?>
                                 <tr>
-                                    <td class="cbs-reference"><?= esc(cbs_gift_reference((int) $order['id'])) ?></td>
+                                    <td class="cbs-reference">
+                                        <?= esc(cbs_gift_reference((int) $order['id'])) ?>
+                                        <?php if ((int) ($order['bundled_with_booking'] ?? 0) === 1): ?>
+                                            <span class="cell-sub fw-normal">In this greeting's payment</span>
+                                        <?php endif; ?>
+                                    </td>
                                     <td><?= esc($order['gift_name']) ?></td>
                                     <td><?= esc($order['quantity']) ?></td>
                                     <td class="text-end"><?= cbs_money((float) $order['amount'], $order['currency']) ?></td>

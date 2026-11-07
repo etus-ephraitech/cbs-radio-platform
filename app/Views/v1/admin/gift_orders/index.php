@@ -80,6 +80,9 @@ $tabs = [
                                 <td>
                                     <?php if (! empty($order['booking_id'])): ?>
                                         <a href="<?= site_url('admin/bookings/' . $order['booking_id']) ?>" class="cbs-reference text-primary"><?= esc(cbs_booking_reference((int) $order['booking_id'])) ?></a>
+                                        <?php if ((int) ($order['bundled_with_booking'] ?? 0) === 1): ?>
+                                            <span class="cell-sub" title="Chosen in the greeting form and paid in the greeting's payment">Paid with the greeting</span>
+                                        <?php endif; ?>
                                     <?php else: ?>
                                         <span class="text-muted">Standalone</span>
                                     <?php endif; ?>
