@@ -189,6 +189,9 @@ class BookingService
 
         $this->bookingModel->markCancelled($bookingId);
 
+        // Gifts chosen with this greeting and never paid for go with it; paid ones are left for staff to decide on.
+        (new GiftOrderService())->cancelBundledUnpaid($bookingId);
+
         return ['success' => true, 'message' => 'Booking cancelled.'];
     }
 

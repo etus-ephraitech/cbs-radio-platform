@@ -15,7 +15,7 @@ $reach = array_filter([
         <div class="card-body text-center py-4">
             <h1 class="h4 mb-3">Pay for your greeting</h1>
             <p class="text-muted">Reference <strong><?= esc(cbs_booking_reference((int) $booking['id'])) ?></strong></p>
-            <p class="display-6 mb-4"><?= cbs_money((float) $booking['amount'], $booking['currency']) ?></p>
+            <p class="display-6 mb-4"><?= cbs_money((float) ($total ?? $booking['amount']), $booking['currency']) ?></p>
 
             <?php if ($result['success'] && $result['manual']): ?>
                 <div class="alert alert-info text-start">

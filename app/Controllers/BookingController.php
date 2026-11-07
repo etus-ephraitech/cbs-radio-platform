@@ -5,22 +5,25 @@ namespace App\Controllers;
 use App\Libraries\VoiceNoteUploader;
 use App\Models\BookingModel;
 use App\Models\CategoryModel;
+use App\Models\GiftModel;
+use App\Models\GiftOrderModel;
 use App\Models\MessageTemplateModel;
 use App\Models\RateTierModel;
-use App\Services\BookingService;
+use App\Models\ShowModel;
+use App\Services\GreetingCheckoutService;
 use App\Services\PaymentService;
 use App\Services\SchedulingService;
 
 /**
  * Public booking flow: category -> package -> message/voice note ->
- * schedule -> submit. No account required — bookings are guest
- * submissions identified by sender_phone.
+ * gifts (optional) -> sender details and schedule -> one payment. No account
+ * required — bookings are guest submissions identified by sender_phone.
  */
 class BookingController extends BaseController
 {
     protected CategoryModel $categoryModel;
     protected RateTierModel $rateTierModel;
-    protected BookingService $bookingService;
+    protected GreetingCheckoutService $checkoutService;
     protected SchedulingService $schedulingService;
     protected PaymentService $paymentService;
     protected VoiceNoteUploader $voiceNoteUploader;
@@ -29,7 +32,7 @@ class BookingController extends BaseController
     {
         $this->categoryModel     = new CategoryModel();
         $this->rateTierModel     = new RateTierModel();
-        $this->bookingService    = new BookingService();
+        $this->checkoutService   = new GreetingCheckoutService();
         $this->schedulingService = new SchedulingService();
         $this->paymentService    = new PaymentService();
         $this->voiceNoteUploader = new VoiceNoteUploader();
@@ -47,7 +50,8 @@ class BookingController extends BaseController
     }
 
     /**
-     * Step 2: package selection + message builder form for one category.
+     * Step 2: the greeting form for one category — package, message, gifts,
+     * the sender's details and the schedule.
      */
     public function category(string $slug)
     {
@@ -65,12 +69,18 @@ class BookingController extends BaseController
             'category'        => $category,
             'rateTiers'       => $this->rateTierModel->forCategory($category['id']),
             'shows'           => $this->schedulingService->showsForDay($isoDayOfWeek),
+            // Every active show with the days it runs, so the form can offer the shows on the day the visitor picks.
+            'allShows'        => (new ShowModel())->active(),
             'config'          => config('CbsRadio'),
             // Only what the form's script needs; everything is escaped when it is put on the page.
             'templates'       => array_map(
                 static fn (array $t): array => ['id' => (int) $t['id'], 'title' => $t['title'], 'language' => $t['language'], 'body' => $t['body']],
                 (new MessageTemplateModel())->forCategory((int) $category['id'])
             ),
+            // Gifts that can ride along with the greeting and be paid for in the same payment.
+            'gifts'           => (new GiftModel())->active(),
+            'giftMaxQuantity' => GreetingCheckoutService::MAX_QUANTITY,
+            'giftMaxCount'    => GreetingCheckoutService::MAX_GIFTS,
         ]);
     }
 
@@ -81,15 +91,18 @@ class BookingController extends BaseController
     public function store()
     {
         $rules = [
-            'category_id'     => 'required|is_natural_no_zero',
-            'rate_tier_id'    => 'required|is_natural_no_zero',
-            'sender_name'     => 'required|max_length[150]',
-            'sender_phone'    => 'required|max_length[20]',
-            'sender_email'    => 'permit_empty|valid_email',
-            'recipient_name'  => 'required|max_length[150]',
-            'message_text'    => 'required',
-            'show_id'         => 'permit_empty|is_natural_no_zero',
-            'scheduled_date'  => 'permit_empty|valid_date[Y-m-d]', // not bare valid_date: it accepts "next friday" and 2026-02-30
+            'category_id'           => 'required|is_natural_no_zero',
+            'rate_tier_id'          => 'required|is_natural_no_zero',
+            'sender_name'           => 'required|max_length[150]',
+            'sender_phone'          => 'required|max_length[20]',
+            'sender_email'          => 'permit_empty|valid_email',
+            'recipient_name'        => 'required|max_length[150]',
+            'message_text'          => 'required',
+            'show_id'               => 'permit_empty|is_natural_no_zero',
+            'scheduled_date'        => 'permit_empty|valid_date[Y-m-d]', // not bare valid_date: it accepts "next friday" and 2026-02-30
+            'gift_recipient_phone'  => 'permit_empty|max_length[20]',
+            'gift_delivery_details' => 'permit_empty|max_length[1000]',
+            // gifts[<id>] = quantity is checked by GreetingCheckoutService, which explains problems in plain words.
             // The voice note is deliberately not validated here: VoiceNoteUploader checks it
             // and explains any problem in plain words (the framework's own wording is not friendly).
         ];
@@ -134,7 +147,12 @@ class BookingController extends BaseController
             $input['voice_note_duration_seconds'] = $check['duration']; // measured, when the server can measure it
         }
 
-        $result = $this->bookingService->createBooking($input);
+        $gifts = $this->request->getPost('gifts');
+
+        $result = $this->checkoutService->submit($input, is_array($gifts) ? $gifts : [], [
+            'recipient_phone'  => $this->request->getPost('gift_recipient_phone'),
+            'delivery_details' => $this->request->getPost('gift_delivery_details'),
+        ]);
 
         if (! $result['success']) {
             // The booking didn't happen, so don't leave its audio file behind.
@@ -169,10 +187,13 @@ class BookingController extends BaseController
         $result = $this->paymentService->initiateForBooking($booking);
 
         return ui_view('booking/pay', [
-            'booking'  => $booking,
-            'result'   => $result,
-            'payments' => config('Payments'),
-            'contact'  => config('CbsRadio'),
+            'booking'    => $booking,
+            'result'     => $result,
+            'payments'   => config('Payments'),
+            'contact'    => config('CbsRadio'),
+            // The gifts chosen with the greeting, and what the one payment covers.
+            'giftOrders' => (new GiftOrderModel())->bundledWithBooking($bookingId),
+            'total'      => isset($result['payment']['amount']) ? (float) $result['payment']['amount'] : $this->paymentService->totalForBooking($booking),
         ]);
     }
 
@@ -187,6 +208,9 @@ class BookingController extends BaseController
             return redirect()->to(site_url('booking'))->with('toastr_error', 'Booking not found.');
         }
 
-        return ui_view('booking/confirmation', ['booking' => $booking]);
+        return ui_view('booking/confirmation', [
+            'booking'    => $booking,
+            'giftOrders' => (new GiftOrderModel())->bundledWithBooking($bookingId),
+        ]);
     }
 }

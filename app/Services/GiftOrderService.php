@@ -35,12 +35,19 @@ class GiftOrderService
      * Expected $input keys: gift_id, sender_name, sender_phone,
      * recipient_name, recipient_phone, delivery_details, quantity.
      * Pass $bookingId when the gift rides along with an existing greeting;
-     * leave null for the standalone "Send a Gift" flow.
+     * leave null for the standalone "Send a Gift" flow. Pass
+     * $bundledWithBooking when the gift was chosen inside that greeting's form
+     * and is paid for in the greeting's payment (see GreetingCheckoutService);
+     * such an order never gets a payment of its own.
      *
      * @return array{success: bool, message: string, giftOrder: ?array, errors: array}
      */
-    public function createOrder(array $input, ?int $bookingId = null): array
+    public function createOrder(array $input, ?int $bookingId = null, bool $bundledWithBooking = false): array
     {
+        if ($bundledWithBooking && $bookingId === null) {
+            return ['success' => false, 'message' => 'A gift paid with a greeting needs that greeting.', 'giftOrder' => null, 'errors' => []];
+        }
+
         $gift = empty($input['gift_id']) ? null : $this->giftModel->find($input['gift_id']); // not find(null): that is every row
 
         if ($gift === null || (int) $gift['is_active'] !== 1) {
@@ -50,17 +57,18 @@ class GiftOrderService
         $quantity = max((int) ($input['quantity'] ?? 1), 1);
 
         $data = [
-            'booking_id'       => $bookingId,
-            'gift_id'          => $gift['id'],
-            'sender_name'      => $input['sender_name'] ?? null,
-            'sender_phone'     => $input['sender_phone'] ?? null,
-            'recipient_name'   => $input['recipient_name'] ?? null,
-            'recipient_phone'  => $input['recipient_phone'] ?? null,
-            'delivery_details' => $input['delivery_details'] ?? null,
-            'quantity'         => $quantity,
-            'amount'           => $gift['price'] * $quantity,
-            'currency'         => $gift['currency'],
-            'status'           => GiftOrderModel::STATUS_PENDING_PAYMENT,
+            'booking_id'           => $bookingId,
+            'bundled_with_booking' => $bundledWithBooking ? 1 : 0,
+            'gift_id'              => $gift['id'],
+            'sender_name'          => $input['sender_name'] ?? null,
+            'sender_phone'         => $input['sender_phone'] ?? null,
+            'recipient_name'       => $input['recipient_name'] ?? null,
+            'recipient_phone'      => $input['recipient_phone'] ?? null,
+            'delivery_details'     => $input['delivery_details'] ?? null,
+            'quantity'             => $quantity,
+            'amount'               => $gift['price'] * $quantity,
+            'currency'             => $gift['currency'],
+            'status'               => GiftOrderModel::STATUS_PENDING_PAYMENT,
         ];
 
         $id = $this->giftOrderModel->insert($data);
@@ -147,6 +155,43 @@ class GiftOrderService
     protected function vendorClient(array $vendor): VendorGiftClientInterface
     {
         return new GenericRestVendorClient($vendor);
+    }
+
+    /**
+     * The greeting's payment has been received: every gift chosen with it, still waiting for payment, is paid too.
+     *
+     * @return int how many gift orders were marked paid
+     */
+    public function confirmBundledPaymentReceived(int $bookingId): int
+    {
+        $paid = 0;
+
+        foreach ($this->giftOrderModel->bundledWithBooking($bookingId, GiftOrderModel::STATUS_PENDING_PAYMENT) as $order) {
+            if ($this->giftOrderModel->markPaid((int) $order['id'])) {
+                $paid++;
+            }
+        }
+
+        return $paid;
+    }
+
+    /**
+     * The greeting was cancelled: gifts chosen with it that were never paid for are cancelled with it. A gift that
+     * has been paid is left for staff to decide on (deliver it anyway, or refund), like the greeting's own payment.
+     *
+     * @return int how many gift orders were cancelled
+     */
+    public function cancelBundledUnpaid(int $bookingId): int
+    {
+        $cancelled = 0;
+
+        foreach ($this->giftOrderModel->bundledWithBooking($bookingId, GiftOrderModel::STATUS_PENDING_PAYMENT) as $order) {
+            if ($this->giftOrderModel->markCancelled((int) $order['id'])) {
+                $cancelled++;
+            }
+        }
+
+        return $cancelled;
     }
 
     public function cancel(int $giftOrderId): bool

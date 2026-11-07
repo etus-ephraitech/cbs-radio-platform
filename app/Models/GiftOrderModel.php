@@ -19,6 +19,7 @@ class GiftOrderModel extends Model
 
     protected $allowedFields = [
         'booking_id',
+        'bundled_with_booking',
         'gift_id',
         'sender_name',
         'sender_phone',
@@ -37,8 +38,9 @@ class GiftOrderModel extends Model
     protected $updatedField  = 'updated_at';
 
     protected $validationRules = [
-        'booking_id'       => 'permit_empty|is_natural_no_zero',
-        'gift_id'          => 'required|is_natural_no_zero',
+        'booking_id'           => 'permit_empty|is_natural_no_zero',
+        'bundled_with_booking' => 'permit_empty|in_list[0,1]',
+        'gift_id'              => 'required|is_natural_no_zero',
         'sender_name'      => 'required|max_length[150]',
         'sender_phone'     => 'required|max_length[20]',
         'recipient_name'   => 'required|max_length[150]',
@@ -94,6 +96,43 @@ class GiftOrderModel extends Model
             ->orderBy('gift_orders.created_at', 'ASC')
             ->orderBy('gift_orders.id', 'ASC')
             ->findAll();
+    }
+
+    /**
+     * The gift orders chosen inside a greeting's form, paid for in that greeting's payment, with the gift's name,
+     * type and source attached. Pass a status to filter.
+     */
+    public function bundledWithBooking(int $bookingId, ?string $status = null): array
+    {
+        $this->select('gift_orders.*, gifts.name AS gift_name, gifts.type AS gift_type, gifts.source AS gift_source')
+            ->join('gifts', 'gifts.id = gift_orders.gift_id')
+            ->where('gift_orders.booking_id', $bookingId)
+            ->where('gift_orders.bundled_with_booking', 1);
+
+        if ($status !== null) {
+            $this->where('gift_orders.status', $status);
+        }
+
+        return $this->orderBy('gift_orders.id', 'ASC')->findAll();
+    }
+
+    /**
+     * What a greeting's bundled gifts still waiting for payment add to that greeting's payment, in its currency.
+     * A gift in any other currency can't be added to the same payment, so it is never counted (the checkout refuses
+     * to create one).
+     */
+    public function bundledUnpaidTotal(int $bookingId, string $currency): float
+    {
+        $row = $this->builder()
+            ->selectSum('amount', 'total')
+            ->where('booking_id', $bookingId)
+            ->where('bundled_with_booking', 1)
+            ->where('status', self::STATUS_PENDING_PAYMENT)
+            ->where('currency', $currency)
+            ->get()
+            ->getRowArray();
+
+        return round((float) ($row['total'] ?? 0), 2);
     }
 
     public function markPaid(int $giftOrderId): bool

@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\GiftOrderModel;
 use App\Models\PaymentModel;
 
 /**
@@ -23,15 +24,30 @@ class PaymentService
     protected PaymentModel $paymentModel;
     protected BookingService $bookingService;
     protected GiftOrderService $giftOrderService;
+    protected GiftOrderModel $giftOrderModel;
 
     public function __construct(
         ?PaymentModel $paymentModel = null,
         ?BookingService $bookingService = null,
-        ?GiftOrderService $giftOrderService = null
+        ?GiftOrderService $giftOrderService = null,
+        ?GiftOrderModel $giftOrderModel = null
     ) {
         $this->paymentModel     = $paymentModel ?? new PaymentModel();
         $this->bookingService   = $bookingService ?? new BookingService();
         $this->giftOrderService = $giftOrderService ?? new GiftOrderService();
+        $this->giftOrderModel   = $giftOrderModel ?? new GiftOrderModel();
+    }
+
+    /**
+     * What paying for a greeting costs: its package, plus every gift chosen with it in the same form that is still
+     * waiting for payment. One payment covers them all (see settleLinkedRecord()).
+     */
+    public function totalForBooking(array $booking): float
+    {
+        return round(
+            (float) $booking['amount'] + $this->giftOrderModel->bundledUnpaidTotal((int) $booking['id'], (string) $booking['currency']),
+            2
+        );
     }
 
     /**
@@ -41,7 +57,7 @@ class PaymentService
     {
         return $this->initiate([
             'booking_id' => $booking['id'],
-            'amount'     => $booking['amount'],
+            'amount'     => $this->totalForBooking($booking),
             'currency'   => $booking['currency'],
             'phone'      => $booking['sender_phone'],
         ]);
@@ -220,6 +236,8 @@ class PaymentService
     {
         if (! empty($payment['booking_id'])) {
             $this->bookingService->confirmPaymentReceived((int) $payment['booking_id']);
+            // The same payment covered the gifts chosen with the greeting.
+            $this->giftOrderService->confirmBundledPaymentReceived((int) $payment['booking_id']);
         }
 
         if (! empty($payment['gift_order_id'])) {

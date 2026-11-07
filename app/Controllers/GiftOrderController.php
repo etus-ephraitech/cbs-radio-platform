@@ -80,6 +80,12 @@ class GiftOrderController extends BaseController
             return redirect()->to(site_url('gifts'))->with('toastr_error', 'Gift order not found.');
         }
 
+        // A gift chosen inside a greeting's form is paid for in that greeting's payment, never on its own:
+        // a second payment here would charge for it twice.
+        if ((int) ($giftOrder['bundled_with_booking'] ?? 0) === 1 && ! empty($giftOrder['booking_id'])) {
+            return redirect()->to(site_url('booking/' . $giftOrder['booking_id'] . '/pay'));
+        }
+
         // Only start a payment for an order that is waiting to be paid.
         if ($giftOrder['status'] !== GiftOrderModel::STATUS_PENDING_PAYMENT) {
             return redirect()->to(site_url('gifts/' . $giftOrderId . '/confirmation'));
