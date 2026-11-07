@@ -279,3 +279,114 @@ if (! function_exists('ui_layout')) {
         return ui_view_path('layouts/' . $layout);
     }
 }
+
+/*
+ * ---------------------------------------------------------------------------
+ * Pictures for occasions and gifts (public flow)
+ * ---------------------------------------------------------------------------
+ * Categories and gifts carry no image, so the visitor's pages give each one an
+ * icon and a colour from what it is: an occasion by the words in its slug or
+ * name, a gift by its type. Inline SVG, drawn with currentColor, sized 1.6em.
+ */
+
+if (! function_exists('cbs_icon_svg')) {
+    /**
+     * One of the flow's line icons as inline SVG, or '' for an unknown name.
+     */
+    function cbs_icon_svg(string $name, float $size = 1.6): string
+    {
+        static $paths = [
+            'cake'     => '<path d="M4 21h16M5 21v-7a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v7"/><path d="M5 16c1.5 1 3 1 4.5 0s3-1 4.5 0 3 1 4.5 0"/><path d="M12 12V8M12 5.5c.8-.7.8-1.8 0-2.5-.8.7-.8 1.8 0 2.5Z"/>',
+            'candle'   => '<path d="M9 21h6M10 21V11h4v10"/><path d="M12 8c1.3-1 1.3-2.7 0-4-1.3 1.3-1.3 3 0 4Z"/><path d="M7 21h10"/>',
+            'star'     => '<path d="m12 3 2.6 5.6 6 .7-4.5 4.1 1.2 6L12 16.6 6.7 19.4l1.2-6L3.4 9.3l6-.7Z"/>',
+            'trophy'   => '<path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0Z"/><path d="M7 6H4v1a3 3 0 0 0 3 3M17 6h3v1a3 3 0 0 1-3 3"/>',
+            'sparkle'  => '<path d="M12 3v4M12 17v4M3 12h4M17 12h4M6.3 6.3l2.5 2.5M15.2 15.2l2.5 2.5M6.3 17.7l2.5-2.5M15.2 8.8l2.5-2.5"/>',
+            'rings'    => '<circle cx="9" cy="14" r="5"/><circle cx="15" cy="14" r="5"/><path d="m10 4 2-2 2 2-2 3Z"/>',
+            'heart'    => '<path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10Z"/>',
+            'mic'      => '<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/>',
+            'mail'     => '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/>',
+            'phone'    => '<rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/>',
+            'megaphone' => '<path d="M3 11v2a2 2 0 0 0 2 2h2l5 4V5L7 9H5a2 2 0 0 0-2 2Z"/><path d="M16 9a4 4 0 0 1 0 6M19 6a8 8 0 0 1 0 12"/>',
+            'music'    => '<path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>',
+            'gift'     => '<rect x="3" y="8" width="18" height="4" rx="1"/><path d="M5 12v9h14v-9M12 8v13"/><path d="M12 8C10 4 7 4 7 6s3 2 5 2c2 0 5 0 5-2s-3-2-5 2Z"/>',
+            'check'    => '<path d="m5 12 5 5L20 7"/>',
+            'arrow'    => '<path d="M5 12h14M13 6l6 6-6 6"/>',
+            'back'     => '<path d="M19 12H5M11 6l-6 6 6 6"/>',
+            'shield'   => '<path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6Z"/><path d="m9 12 2 2 4-4"/>',
+            'clock'    => '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+            'radio'    => '<rect x="3" y="8" width="18" height="12" rx="2"/><path d="m7 8 9-5"/><circle cx="15" cy="14" r="2.5"/><path d="M7 12h3M7 15h3"/>',
+            'alert'    => '<circle cx="12" cy="12" r="9"/><path d="M12 7v6M12 16.5v.5"/>',
+            'copy'     => '<rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/>',
+            'search'   => '<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>',
+            'x'        => '<path d="M6 6l12 12M18 6 6 18"/>',
+            'truck'    => '<path d="M3 6h11v10H3zM14 9h4l3 3v4h-7"/><circle cx="7" cy="18" r="2"/><circle cx="17" cy="18" r="2"/>',
+            'calendar' => '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',
+        ];
+
+        if (! isset($paths[$name])) {
+            return '';
+        }
+
+        return '<svg xmlns="http://www.w3.org/2000/svg" width="' . $size . 'em" height="' . $size . 'em" viewBox="0 0 24 24" fill="none" stroke="currentColor"'
+            . ' stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">' . $paths[$name] . '</svg>';
+    }
+}
+
+if (! function_exists('cbs_occasion_look')) {
+    /**
+     * The icon and colour for an occasion, chosen from the words in its slug and name.
+     *
+     * @param array{slug?: string, name?: string} $category
+     *
+     * @return array{icon: string, tone: string}
+     */
+    function cbs_occasion_look(array $category): array
+    {
+        $words = strtolower(($category['slug'] ?? '') . ' ' . ($category['name'] ?? ''));
+
+        $looks = [
+            ['birthday', 'cake', 'rose'],
+            ['tribute', 'candle', 'slate'],
+            ['memoriam', 'candle', 'slate'],
+            ['condolence', 'candle', 'slate'],
+            ['wedding', 'rings', 'violet'],
+            ['anniversar', 'heart', 'red'],
+            ['love', 'heart', 'red'],
+            ['milestone', 'trophy', 'gold'],
+            ['achievement', 'trophy', 'gold'],
+            ['graduat', 'trophy', 'gold'],
+            ['holiday', 'star', 'teal'],
+            ['calendar', 'star', 'teal'],
+            ['christmas', 'star', 'teal'],
+            ['greeting', 'sparkle', 'navy'],
+            ['celebrat', 'sparkle', 'navy'],
+        ];
+
+        foreach ($looks as [$needle, $icon, $tone]) {
+            if (str_contains($words, $needle)) {
+                return ['icon' => $icon, 'tone' => $tone];
+            }
+        }
+
+        return ['icon' => 'mic', 'tone' => 'navy'];
+    }
+}
+
+if (! function_exists('cbs_gift_look')) {
+    /**
+     * The icon, colour and plain name for a gift type.
+     *
+     * @return array{icon: string, tone: string, label: string}
+     */
+    function cbs_gift_look(string $type): array
+    {
+        return match ($type) {
+            'ecard'      => ['icon' => 'mail', 'tone' => 'rose', 'label' => 'E-card'],
+            'airtime'    => ['icon' => 'phone', 'tone' => 'teal', 'label' => 'Airtime top-up'],
+            'shoutout'   => ['icon' => 'megaphone', 'tone' => 'gold', 'label' => 'Shout-out'],
+            'dedication' => ['icon' => 'music', 'tone' => 'violet', 'label' => 'Song dedication'],
+            'physical'   => ['icon' => 'truck', 'tone' => 'red', 'label' => 'Delivered gift'],
+            default      => ['icon' => 'gift', 'tone' => 'navy', 'label' => ucfirst($type)],
+        };
+    }
+}
