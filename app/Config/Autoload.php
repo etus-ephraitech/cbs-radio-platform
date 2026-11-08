@@ -75,7 +75,9 @@ class Autoload extends AutoloadConfig
      *
      * @var list<string>
      */
-    public $files = [];
+    public $files = [
+        APPPATH . 'Config/AuthConfigAlias.php', // ephraitech/ci4-auth reads app/Config/Auth.php (see that file)
+    ];
 
     /**
      * -------------------------------------------------------------------

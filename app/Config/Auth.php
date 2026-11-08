@@ -17,7 +17,7 @@ use Ephraitech\Auth\Notifications\EmailNotifier;
  */
 class Auth extends BaseAuth
 {
-    public $allowRegistration = false;
+    public bool $allowRegistration = false;
 
     public array $identifiers = [
         'email',
@@ -85,13 +85,14 @@ class Auth extends BaseAuth
 
     public array $redirects = [
         'login' => '/login',
-        'afterLogin' => '/',
+        'afterLogin' => '/admin', // staff sign in to work, not to the public homepage
         'afterLogout' => '/login',
         'forbidden' => '/',
         'afterRegister' => '/login',
     ];
 
-    // public string $appName          = 'Field Tracker';
+    public string $appName = 'CBS Radio';
+
     // public string $emailFromAddress = 'no-reply@example.com';
     // public string $emailFromName    = 'Field Tracker';
 
