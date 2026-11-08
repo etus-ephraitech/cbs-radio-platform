@@ -92,6 +92,7 @@ $icon       = static fn (string $path): string => '<svg xmlns="http://www.w3.org
                     </li>
                     <li><a class="dropdown-item d-flex align-items-center" href="<?= site_url('presenter') ?>"><i class="ri-mic-line me-2 fs-16" aria-hidden="true"></i>Presenter portal</a></li>
                     <li><a class="dropdown-item d-flex align-items-center" href="<?= site_url('admin/settings') ?>"><i class="ri-settings-3-line me-2 fs-16" aria-hidden="true"></i>Settings</a></li>
+                    <li><a class="dropdown-item d-flex align-items-center" href="<?= url_to('auth.password') ?>"><i class="ri-lock-password-line me-2 fs-16" aria-hidden="true"></i>Change password</a></li>
                     <li><a class="dropdown-item d-flex align-items-center" href="<?= site_url('/') ?>" target="_blank" rel="noopener"><i class="ri-external-link-line me-2 fs-16" aria-hidden="true"></i>View public site</a></li>
                     <li class="border-top">
                         <form method="post" action="<?= url_to('auth.logout') ?>" class="m-0">

@@ -321,6 +321,11 @@ if (! function_exists('cbs_icon_svg')) {
             'x'        => '<path d="M6 6l12 12M18 6 6 18"/>',
             'truck'    => '<path d="M3 6h11v10H3zM14 9h4l3 3v4h-7"/><circle cx="7" cy="18" r="2"/><circle cx="17" cy="18" r="2"/>',
             'calendar' => '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',
+            'eye'      => '<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/>',
+            'eye-off'  => '<path d="M3 3l18 18M10.6 5.1A10.4 10.4 0 0 1 12 5c6.4 0 10 7 10 7a17.8 17.8 0 0 1-3.2 4.2M6.6 6.6C3.9 8.3 2 12 2 12s3.6 7 10 7a9.7 9.7 0 0 0 5.4-1.6"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/>',
+            'lock'     => '<rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>',
+            'user'     => '<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
+            'key'      => '<circle cx="8" cy="15" r="4"/><path d="m11 12 9-9M16 7l3 3M14 9l2 2"/>',
         ];
 
         if (! isset($paths[$name])) {
@@ -388,5 +393,41 @@ if (! function_exists('cbs_gift_look')) {
             'physical'   => ['icon' => 'truck', 'tone' => 'red', 'label' => 'Delivered gift'],
             default      => ['icon' => 'gift', 'tone' => 'navy', 'label' => ucfirst($type)],
         };
+    }
+}
+
+/*
+ * ---------------------------------------------------------------------------
+ * Form field errors (staff account pages)
+ * ---------------------------------------------------------------------------
+ */
+
+if (! function_exists('cbs_field_invalid')) {
+    /**
+     * The attributes that mark a field as invalid and point it at its message, or '' when it has no error.
+     *
+     * @param array<string, string> $errors
+     */
+    function cbs_field_invalid(array $errors, string $field): string
+    {
+        return isset($errors[$field])
+            ? ' aria-invalid="true" aria-describedby="' . esc($field, 'attr') . '-error"'
+            : '';
+    }
+}
+
+if (! function_exists('cbs_field_error')) {
+    /**
+     * A field's error message, tied to the field by id, or '' when it has none.
+     *
+     * @param array<string, string> $errors
+     */
+    function cbs_field_error(array $errors, string $field): string
+    {
+        if (! isset($errors[$field]) || ! is_string($errors[$field])) {
+            return '';
+        }
+
+        return '<p class="au-error" id="' . esc($field, 'attr') . '-error">' . cbs_icon_svg('alert', 1) . '<span>' . esc($errors[$field]) . '</span></p>';
     }
 }

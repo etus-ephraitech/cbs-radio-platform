@@ -93,6 +93,25 @@ class Auth extends BaseAuth
 
     public string $appName = 'CBS Radio';
 
+    /**
+     * The account pages are drawn by app/Views/auth/* in the station's own style (assets/css/auth.css),
+     * not by the package's plain Bootstrap pages.
+     */
+    public string $viewLayout = 'auth/layout';
+
+    /**
+     * @var array<string, string>
+     */
+    public array $views = [
+        'login'           => 'auth/login',
+        'register'        => 'auth/register',
+        'forgot'          => 'auth/forgot',
+        'reset'           => 'auth/reset',
+        'verify'          => 'auth/verify',
+        'change_password' => 'auth/change_password',
+        'messages'        => 'auth/_messages',
+    ];
+
     // public string $emailFromAddress = 'no-reply@example.com';
     // public string $emailFromName    = 'Field Tracker';
 
