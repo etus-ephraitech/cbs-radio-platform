@@ -197,6 +197,7 @@ $isActive = static function (string $segment) use ($currentPath): string {
 </head>
 
 <body>
+    <?= cbs_environment_banner() ?>
 
     <div class="admin-shell">
         <aside class="admin-sidebar">

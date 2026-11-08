@@ -40,6 +40,9 @@ $notice = array_filter([
         <meta name="description" content="<?= esc($desc) ?>">
     <?php endif; ?>
     <meta name="theme-color" content="#0E1B3D">
+    <?php if (cbs_environment_label() !== ''): ?>
+        <meta name="robots" content="noindex, nofollow">
+    <?php endif; ?>
     <link rel="canonical" href="<?= esc(current_url()) ?>">
 
     <meta property="og:type" content="website">
@@ -185,6 +188,7 @@ $notice = array_filter([
 </head>
 <body>
     <a class="skip-link" href="#main">Skip to content</a>
+    <?= cbs_environment_banner() ?>
 
     <?php if ($cbs->announcement !== ''): ?>
         <div class="cbs-announce" role="note"><?= esc($cbs->announcement) ?></div>

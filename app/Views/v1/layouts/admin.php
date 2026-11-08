@@ -22,6 +22,7 @@ $asset = static fn (string $path): string => esc(base_url('assets/' . ltrim($pat
 </head>
 
 <body>
+    <?= cbs_environment_banner(true) ?>
     <div class="progress-top-bar"></div>
 
     <?= $this->include(ui_view_path('layouts/partials/switcher')) ?>

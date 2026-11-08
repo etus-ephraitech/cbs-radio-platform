@@ -431,3 +431,48 @@ if (! function_exists('cbs_field_error')) {
         return '<p class="au-error" id="' . esc($field, 'attr') . '-error">' . cbs_icon_svg('alert', 1) . '<span>' . esc($errors[$field]) . '</span></p>';
     }
 }
+
+/*
+ * ---------------------------------------------------------------------------
+ * Environment label (staging and other test copies)
+ * ---------------------------------------------------------------------------
+ * `app.environmentLabel` in .env (e.g. "Staging") marks a copy of the site that
+ * is not the live one: every page shows a striped bar saying so, and the public
+ * pages ask search engines not to index them. Empty (the default, and what the
+ * live site uses) shows nothing.
+ */
+
+if (! function_exists('cbs_environment_label')) {
+    function cbs_environment_label(): string
+    {
+        $label = trim(preg_replace('/\s+/', ' ', (string) env('app.environmentLabel', '')));
+
+        return mb_substr($label, 0, 40);
+    }
+}
+
+if (! function_exists('cbs_environment_banner')) {
+    /**
+     * The bar shown on every page of a non-live copy, or '' on the live site. Inline styles, so it looks the same
+     * in the public, admin and sign-in layouts whatever stylesheets they load. $pinned keeps it fixed to the
+     * bottom of the window, for the admin theme, whose header and side menu are fixed to the top and left.
+     */
+    function cbs_environment_banner(bool $pinned = false): string
+    {
+        $label = cbs_environment_label();
+
+        if ($label === '') {
+            return '';
+        }
+
+        $position = $pinned ? 'position:fixed;left:0;right:0;bottom:0;border-top:2px solid #1b1b1b;' : 'position:relative;border-bottom:2px solid #1b1b1b;';
+
+        return '<div class="cbs-env-banner" role="note" style="' . $position . 'z-index:9999;padding:.45rem 1rem;text-align:center;'
+            . 'font:700 .9rem/1.3 system-ui,-apple-system,\'Segoe UI\',sans-serif;letter-spacing:.02em;color:#1b1b1b;'
+            . 'background:repeating-linear-gradient(135deg,#FFD24A 0 18px,#FFC21A 18px 36px)">'
+            . esc(mb_strtoupper($label)) . ' &middot; test copy of the site. Bookings, payments and messages here are not real.'
+            . '</div>'
+            // Room at the bottom of the page, so the pinned bar never covers the last line.
+            . ($pinned ? '<style>body{padding-bottom:2.6rem}</style>' : '');
+    }
+}

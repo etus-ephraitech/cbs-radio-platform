@@ -29,6 +29,7 @@ $cbs     = config('CbsRadio');
 
 <body>
     <a class="au-skip" href="#auth-main">Skip to the form</a>
+    <?= cbs_environment_banner() ?>
 
     <div class="au">
         <aside class="au-brand" aria-label="<?= esc($appName, 'attr') ?>">
