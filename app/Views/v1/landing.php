@@ -1,4 +1,5 @@
 <?php
+
 /**
  * The homepage in the v1 UI: what CBS Radio greetings are, every occasion with its real packages and prices, how
  * it works, the shows, gifts, tributes and questions — all from live data and Settings, as before. It stays light:
@@ -12,7 +13,7 @@
  * @var string                                               $sampleShow
  * @var list<array<string, mixed>>                           $gifts
  */
-$asset = static fn (string $path): string => base_url($path) . (is_file(FCPATH . $path) ? '?v=' . filemtime(FCPATH . $path) : '');
+$asset = static fn(string $path): string => base_url($path) . (is_file(FCPATH . $path) ? '?v=' . filemtime(FCPATH . $path) : '');
 
 $tribute = null;
 foreach ($occasions as $occasion) {
@@ -67,7 +68,9 @@ $sampleGift = $gifts[0] ?? null;
 <?= $this->extend(ui_layout('public')) ?>
 
 <?= $this->section('head') ?>
-<script type="application/ld+json"><?= json_encode($ld, JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?></script>
+<script type="application/ld+json">
+    <?= json_encode($ld, JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>
+</script>
 <link rel="stylesheet" href="<?= esc($asset('assets/css/site.css')) ?>">
 <link rel="stylesheet" href="<?= esc($asset('assets/css/home.css')) ?>">
 <?= $this->endSection() ?>
@@ -93,7 +96,9 @@ $sampleGift = $gifts[0] ?? null;
                     <a class="ck-btn ck-btn--lg hp-btn-ghost" href="<?= site_url('gifts') ?>"><?= cbs_icon_svg('gift', 1.1) ?> Send a gift</a>
                     <?php if ($cbs->liveStreamUrl !== ''): ?>
                         <button class="ck-btn ck-btn--lg hp-btn-ghost" id="listenBtn" type="button" aria-pressed="false">
-                            <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 1.5v13l11-6.5z" fill="currentColor" /></svg>
+                            <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
+                                <path d="M3 1.5v13l11-6.5z" fill="currentColor" />
+                            </svg>
                             <span id="listenLabel">Listen live</span>
                         </button>
                     <?php endif; ?>
@@ -119,31 +124,31 @@ $sampleGift = $gifts[0] ?? null;
 
             <div class="hp-stage" aria-hidden="true">
                 <div class="hp-stage-inner">
-                <div class="hp-player">
-                    <div class="hp-player-top">
-                        <span class="hp-show"><i></i><?= esc($sampleShow) ?></span>
-                        <span class="hp-onair">ON AIR</span>
+                    <div class="hp-player">
+                        <div class="hp-player-top">
+                            <span class="hp-show"><i></i><?= esc($sampleShow) ?></span>
+                            <span class="hp-onair">ON AIR</span>
+                        </div>
+                        <p class="hp-to">For Mama Ruth</p>
+                        <p class="hp-msg">“Happy birthday Mama Ruth, we love you! Many more blessed years.”</p>
+                        <p class="hp-from">From Grace and all the children</p>
+                        <div class="hp-eq">
+                            <?php for ($i = 0; $i < 28; $i++): ?><span></span><?php endfor; ?>
+                        </div>
                     </div>
-                    <p class="hp-to">For Mama Ruth</p>
-                    <p class="hp-msg">“Happy birthday Mama Ruth, we love you! Many more blessed years.”</p>
-                    <p class="hp-from">From Grace and all the children</p>
-                    <div class="hp-eq">
-                        <?php for ($i = 0; $i < 28; $i++): ?><span></span><?php endfor; ?>
-                    </div>
-                </div>
 
-                <?php if ($sampleGift !== null): ?>
-                    <?php $look = cbs_gift_look($sampleGift['type']); ?>
-                    <div class="hp-chip hp-chip--gift">
-                        <span class="ck-art ck-art--<?= esc($look['tone'], 'attr') ?>"><?= cbs_icon_svg($look['icon'], 1.2) ?></span>
-                        <span><strong><?= esc($sampleGift['name']) ?></strong><span class="hp-chip-sub">added to the greeting</span></span>
-                    </div>
-                <?php endif; ?>
+                    <?php if ($sampleGift !== null): ?>
+                        <?php $look = cbs_gift_look($sampleGift['type']); ?>
+                        <div class="hp-chip hp-chip--gift">
+                            <span class="ck-art ck-art--<?= esc($look['tone'], 'attr') ?>"><?= cbs_icon_svg($look['icon'], 1.2) ?></span>
+                            <span><strong><?= esc($sampleGift['name']) ?></strong><span class="hp-chip-sub">added to the greeting</span></span>
+                        </div>
+                    <?php endif; ?>
 
-                <div class="hp-chip hp-chip--ok">
-                    <span class="hp-tick"><?= cbs_icon_svg('check', 1.2) ?></span>
-                    <span><strong>Approved</strong><span class="hp-chip-sub">Queued for the show</span></span>
-                </div>
+                    <div class="hp-chip hp-chip--ok">
+                        <span class="hp-tick"><?= cbs_icon_svg('check', 1.2) ?></span>
+                        <span><strong>Approved</strong><span class="hp-chip-sub">Queued for the show</span></span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -163,7 +168,7 @@ $sampleGift = $gifts[0] ?? null;
                         <?php foreach ($occasions as $occasion): ?>
                             <?php
                             $look  = cbs_occasion_look($occasion);
-                            $from  = min(array_map(static fn (array $p): float => (float) $p['price'], $occasion['packages']));
+                            $from  = min(array_map(static fn(array $p): float => (float) $p['price'], $occasion['packages']));
                             $money = $occasion['packages'][0]['currency'] ?? 'UGX';
                             ?>
                             <li class="hp-occasion">
@@ -301,6 +306,21 @@ $sampleGift = $gifts[0] ?? null;
         </section>
     <?php endif; ?>
 
+
+    <section id="gifts" class="mist">
+        <div class="cbs-wrap">
+            <h2>Send a gift too</h2>
+            <iframe
+                src="https://kataleplus.com/embed/gifts"
+                title="Gift collection"
+                width="100%"
+                height="480"
+                style="border:0; border-radius:12px;"
+                loading="lazy">
+            </iframe>
+        </div>
+    </section>
+
     <!-- ========================================================= tributes -->
     <?php if ($tribute): ?>
         <section id="tributes" class="hp-tribute" aria-labelledby="tributeTitle">
@@ -368,7 +388,7 @@ $sampleGift = $gifts[0] ?? null;
 <?= $this->section('scripts') ?>
 <?php if ($cbs->liveStreamUrl !== ''): ?>
     <script>
-        (function () {
+        (function() {
             var button = document.getElementById('listenBtn'),
                 audio = document.getElementById('liveAudio'),
                 label = document.getElementById('listenLabel'),
@@ -387,7 +407,7 @@ $sampleGift = $gifts[0] ?? null;
                 note.textContent = "We couldn't connect to the stream just now. Please try again in a moment.";
             }
 
-            button.addEventListener('click', function () {
+            button.addEventListener('click', function() {
                 note.textContent = '';
                 if (audio.paused) {
                     audio.src = audio.getAttribute('data-src');
@@ -402,7 +422,7 @@ $sampleGift = $gifts[0] ?? null;
                     reset();
                 }
             });
-            audio.addEventListener('playing', function () {
+            audio.addEventListener('playing', function() {
                 button.setAttribute('aria-pressed', 'true');
                 label.textContent = 'Stop listening';
             });
