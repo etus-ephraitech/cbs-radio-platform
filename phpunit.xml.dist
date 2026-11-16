@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/10.5/phpunit.xsd"
+         bootstrap="tests/bootstrap.php"
+         backupGlobals="false"
+         beStrictAboutOutputDuringTests="true"
+         colors="true"
+         columns="max"
+         failOnRisky="true"
+         failOnWarning="true"
+         cacheDirectory="build/.phpunit.cache">
+
+    <testsuites>
+        <!-- No database: helpers, message and voice-note validation, the settings registry. -->
+        <testsuite name="unit">
+            <directory>tests/unit</directory>
+        </testsuite>
+        <!-- Services and models against the real schema (built by this project's migrations). -->
+        <testsuite name="database">
+            <directory>tests/database</directory>
+        </testsuite>
+        <!-- Whole requests through routes, filters, controllers and views. -->
+        <testsuite name="feature">
+            <directory>tests/feature</directory>
+        </testsuite>
+    </testsuites>
+
+    <source>
+        <include>
+            <directory suffix=".php">app</directory>
+        </include>
+        <exclude>
+            <directory suffix=".php">app/Views</directory>
+            <directory suffix=".php">app/Config</directory>
+            <directory suffix=".php">app/Database/Migrations</directory>
+            <directory suffix=".php">app/Commands</directory>
+        </exclude>
+    </source>
+
+    <php>
+        <server name="app.baseURL" value="http://example.com/"/>
+        <env name="XDEBUG_MODE" value="coverage"/>
+
+        <!--
+            Our schema is MySQL (it uses raw "ALTER TABLE ... ADD CONSTRAINT"), and those statements name tables
+            without a prefix. CodeIgniter's default "tests" database group is SQLite in memory with a "db_" prefix,
+            so both are overridden here. The credentials (host, database, user, password) come from .env:
+            database.tests.hostname / .database / .username / .password. Use a database used for nothing else:
+            the suite empties its tables.
+        -->
+        <env name="database.tests.DBDriver" value="MySQLi"/>
+        <env name="database.tests.DBPrefix" value=""/>
+
+        <!--
+            The suite runs against the themed admin (app/Views/v1) whatever a developer's .env says, so a run means
+            the same thing on every machine. ThemeVersionsTest renders every staff page under the base views too.
+        -->
+        <env name="ui_version" value="v1" force="true"/>
+
+        <!-- Never let a real SMS gateway key from a developer's .env send a message during a test. -->
+        <env name="sms.apiKey" value=""/>
+    </php>
+</phpunit>

@@ -45,3 +45,17 @@ Thumbs.db
 *.pem
 *.key
 !resources/**/*.key.example
+
+# PHPUnit output (cache, logs, testdox) — regenerated on every run
+/build/
+
+# Stray environment copies and test databases: never commit them
+env_old
+.env.*
+!.env.example
+/writable/*.db
+/writable/cbs_radio_platform_test
+
+# Repository-import artifacts (see HISTORY.md); kept locally, not in the repo
+*.mbox
+*.bundle

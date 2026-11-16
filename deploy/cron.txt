@@ -1,0 +1,9 @@
+# CBS Radio platform — scheduled jobs. Add each in cPanel > Cron Jobs.
+# Replace /home/CPANELUSER/cbs-staging with the repository's path, and php with the PHP the site uses
+# (e.g. /opt/cpanel/ea-php83/root/usr/bin/php) if they differ.
+
+# Every hour: refresh vendor gifts (prices, availability) from active gift vendors.
+0 * * * *   cd /home/CPANELUSER/cbs-staging && php spark gifts:sync >> writable/logs/cron.log 2>&1
+
+# Every night at 03:15: delete expired sign-in tokens, old login attempts and used codes.
+15 3 * * *  cd /home/CPANELUSER/cbs-staging && php spark auth:prune >> writable/logs/cron.log 2>&1

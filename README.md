@@ -1,89 +1,65 @@
-# CBS Radio Platform
+# Tests
 
-Digital congratulatory & tribute platform for **CBS Radio** — a web
-application where listeners submit, schedule, and pay for on-air greetings,
-tributes, and milestone announcements, purchase digital gifts, and where
-CBS presenters and admin staff manage and air submissions.
+`composer test` runs everything (about 900 tests, under 30 seconds). Run one layer while you work:
 
-Built by **Ephraitech Unified Solutions** on the Ephraitech CodeIgniter 4
-API starter kit.
+| Command | Layer | Needs a database | What it covers |
+|---|---|---|---|
+| `composer test:unit` | `tests/unit` | No | Helpers, the message sanitiser, voice-note validation against **real audio**, the settings registry and every validation rule, `FileManager` (including path traversal) |
+| `composer test:database` | `tests/database` | Yes | Every model and every service: bookings, scheduling, moderation, payments, gift orders, vendor sync, notifications, the settings engine |
+| `composer test:feature` | `tests/feature` | Yes | Whole requests through routes, filters, controllers and views: the homepage, the booking and gift flows, the payment callback, the presenter, every admin screen |
 
-- **Client:** CBS Radio
-- **Engagement:** Phase 1, 6-week web application build
-- **Status:** In development
+## One-time setup
 
-## What's in Phase 1
+1. Create a database that is used for **nothing else**. The suite empties this project's tables before every test:
+   `CREATE DATABASE cbs_radio_platform_test CHARACTER SET utf8mb4;`
+2. Put its details in `.env` (the block is in `.env.example`): `database.tests.hostname`, `.database`,
+   `.username`, `.password`. The driver (MySQLi) and the empty table prefix are fixed in `phpunit.xml.dist`.
+3. Install **ffmpeg** (`sudo apt install ffmpeg`). It provides `ffprobe`, which the voice-note tests use to
+   measure real audio. Without it those tests are *skipped*, and PHPUnit says so.
 
-- Web booking flow: category selection → message builder → optional voice
-  note → slot scheduling
-- Digital gifts catalog (e-cards, airtime top-up, shout-outs)
-- Single-provider Mobile Money checkout, with a manual "mark as paid"
-  admin fallback
-- Presenter portal — live, approved-queue feed sorted by show/time-slot
-- Admin panel — moderation, payment reconciliation, reporting
-- SMS/email confirmation on submission and on-air status
+The schema is built by this project's own migrations the first time the suite runs, so there is nothing to import.
+The starter kit's `users` table must already exist (a normal `php spark migrate` creates it).
 
-Native mobile app, physical gift fulfillment, multi-language templates, and
-diaspora card payments are deferred to Phase 2 — see the signed scope
-document for the full breakdown.
+## Why not SQLite
 
-## Tech stack
+CodeIgniter's default `tests` database group is SQLite in memory with a `db_` table prefix. Our migrations use
+raw `ALTER TABLE ... ADD CONSTRAINT` that names tables without a prefix, so the suite runs on MySQL.
+`phpunit.xml.dist` overrides the driver and the prefix for you.
 
-- PHP 8.1+, CodeIgniter 4
-- MySQL
-- Bootstrap 5 (frontend)
-- Ephraitech API starter kit (DB-backed token auth)
-- `ephraitech/ci4-error-logger` for error logging + webhook alerts
+## How the pieces fit
 
-## Getting started
+- `tests/_support/TestCase/` - the base classes. `UnitTestCase` keeps the database out of reach.
+  `AppTestCase` builds the schema once, empties this project's tables before each test, and gives you
+  `setSetting()` (an admin override, exactly as the screen saves it) and `reloadConfig()`.
+  `AppFeatureTestCase` adds request helpers: `flash('toastr_error')`, `silenceNotifications()`.
+- `tests/_support/Concerns/BuildsCatalog.php` - `makeCategory()`, `makeTier()`, `makeShow()`, `makeGift()`,
+  `makeVendor()`, `makeBooking()`, `makeGiftOrder()`, `makePayment()`. Each takes overrides and fails loudly if the
+  row is invalid, rather than quietly building nothing.
+- `tests/_support/Libraries/` - the fakes. `FakeHttpGateway` stands in for every outside HTTP call (the SMS gateway,
+  gift vendors), `RecordingNotifier` records messages instead of sending them, `FakeVendorClient`,
+  `FakeMobileMoneyPayments`, and `AudioFixtures` (real audio, see below). Nothing in the suite can reach the internet.
+- `tests/_support/Filters/ActAsStaff.php` - stands in for the starter kit's `auth` filter in feature tests, so the
+  suite checks what staff screens *do* and does not depend on how the login works. (That the real filter blocks
+  the public is the starter kit's own concern and is not tested here.) CSRF is switched off for feature tests too.
+- `tests/_support/overrides/uploaded_file_functions.php` - **test only.** PHP's `is_uploaded_file()` is false for
+  anything that did not arrive through a real HTTP upload, so a test could never get past "didn't upload
+  properly". A function of the same name in the `CodeIgniter\HTTP\Files` namespace takes precedence over the global
+  one inside that namespace, which makes a fixture count as an upload, for the tests only.
 
-```bash
-git clone git@github.com:ephraitech/cbs-radio-platform.git
-cd cbs-radio-platform
-composer install
-cp .env.example .env
-# fill in local DB credentials and any provider keys you have
-php spark migrate
-php spark db:seed DemoSeeder
-php spark serve
-```
+## Audio fixtures
 
-The app will be available at `http://localhost:8080`.
+`tests/_support/Audio/` holds real audio made the way real devices make it (Chrome's WebM, Safari's MP4, WhatsApp's
+Opus, a phone's M4A, ...), plus bad files (a video with a sound track, a text file, random bytes, a truncated MP3).
+Regenerate them with `scripts/make-test-audio.sh` (needs ffmpeg). The container, not the file name, decides what PHP's
+file-type detection reports, and audio-only WebM and MP4 are reported as **video** types, which is exactly what a
+synthetic test file would hide.
 
-## Working on this project
+## Writing a test
 
-Three developers, sNOW as lead. Before opening your first PR, read
-[`CONTRIBUTING.md`](./CONTRIBUTING.md) — it covers:
-
-- Branching model (`main` / `develop` / `feature/...`)
-- Commit message convention
-- PR review rules
-- Default module ownership (so we don't collide on the same files)
-- Local code-style and static-analysis checks
-
-```bash
-composer cs-check   # PSR-12 style check
-composer cs-fix      # auto-fix style issues
-composer analyse     # static analysis
-composer test        # run the test suite
-```
-
-### Useful custom commands
-
-- `php spark make:module <Name>` — scaffolds a Controller, Model, and
-  migration stub for a new feature area
-- `php spark db:seed DemoSeeder` — seeds local sample data
-- `php spark tokens:cleanup` — purges expired API tokens
-
-## CI
-
-Every PR into `develop` or `main` runs style check, static analysis, and
-the test suite via GitHub Actions (`.github/workflows/ci.yml`). A PR with a
-failing check cannot be merged.
-
-## License
-
-Proprietary — © Ephraitech Unified Solutions. Not for redistribution.
-
----
-*Ephraitech Unified Solutions — Tech with a legacy of purpose.*
+- Pick the lowest layer that can prove the thing. A rule about a value belongs in `unit`; a query or a service in
+  `database`; something a visitor or an administrator does in a browser in `feature`.
+- Test the contract, not the implementation, and say *why* in a comment when the reason is not obvious
+  ("the regression this guards: ...").
+- A test that finds a bug is a good test. Fix the code, keep the test.
+- Never name a helper `call`, `callback`, `get`, `post` or `session` in a feature test: they collide with
+  `FeatureTestTrait` or PHPUnit's final methods and the run dies with a fatal error before any test reports.

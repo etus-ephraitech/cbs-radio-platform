@@ -1,0 +1,142 @@
+/*
+ * CBS Radio — staff account pages (sign in, forgot / reset password, verify, change password, register), drawn by
+ * app/Views/auth/* in place of ephraitech/ci4-auth's plain Bootstrap pages. Self-contained: no framework, the
+ * station's own fonts and colours. Prefixed au-.
+ */
+
+@font-face { font-family: 'Bricolage Grotesque'; font-weight: 700; font-style: normal; font-display: swap; src: url('../fonts/bricolage-grotesque-latin-700-normal.woff2') format('woff2'); }
+@font-face { font-family: 'Bricolage Grotesque'; font-weight: 800; font-style: normal; font-display: swap; src: url('../fonts/bricolage-grotesque-latin-800-normal.woff2') format('woff2'); }
+@font-face { font-family: 'Atkinson Hyperlegible'; font-weight: 400; font-style: normal; font-display: swap; src: url('../fonts/atkinson-hyperlegible-latin-400-normal.woff2') format('woff2'); }
+@font-face { font-family: 'Atkinson Hyperlegible'; font-weight: 700; font-style: normal; font-display: swap; src: url('../fonts/atkinson-hyperlegible-latin-700-normal.woff2') format('woff2'); }
+
+:root {
+    --ink: #0E1B3D;
+    --panel: #17306E;
+    --gold: #F5A800;
+    --lamp: #D62828;
+    --mist: #EDF1F9;
+    --line: #D5DDEE;
+    --muted: #46557A;
+    --ok: #157A43;
+    --display: 'Bricolage Grotesque', ui-sans-serif, system-ui, sans-serif;
+    --body: 'Atkinson Hyperlegible', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body { height: 100%; }
+body { margin: 0; font-family: var(--body); font-size: 1.0625rem; line-height: 1.55; color: var(--ink); background: #fff; -webkit-font-smoothing: antialiased; }
+h1, h2 { font-family: var(--display); font-weight: 800; line-height: 1.1; letter-spacing: -.02em; }
+a { color: var(--ink); font-weight: 700; text-underline-offset: 3px; }
+a:hover { color: var(--panel); }
+:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
+[hidden] { display: none !important; }
+
+.au-skip { position: absolute; left: -999px; top: .75rem; z-index: 10; padding: .6rem 1rem; border-radius: 8px; background: var(--gold); color: var(--ink); }
+.au-skip:focus { left: .75rem; }
+
+/* ------------------------------------------------------------------ the two halves */
+.au { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); min-height: 100vh; min-height: 100dvh; }
+
+.au-brand { position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: space-between; gap: 2rem;
+    padding: clamp(2rem, 4vw, 3.5rem); color: #fff;
+    background:
+        radial-gradient(40rem 26rem at 110% -10%, rgba(245, 168, 0, .25), transparent 60%),
+        radial-gradient(36rem 26rem at -20% 120%, rgba(214, 40, 40, .22), transparent 60%),
+        linear-gradient(160deg, var(--ink) 0%, var(--panel) 100%); }
+.au-brand::after { content: ""; position: absolute; right: -14rem; bottom: -14rem; width: 34rem; height: 34rem; border-radius: 50%; pointer-events: none;
+    border: 2px solid rgba(255, 255, 255, .07);
+    box-shadow: 0 0 0 3.5rem rgba(255, 255, 255, .03), 0 0 0 7rem rgba(255, 255, 255, .025), 0 0 0 10.5rem rgba(255, 255, 255, .02); }
+.au-brand > * { position: relative; z-index: 1; }
+.au-logo { display: inline-flex; align-items: center; gap: .65rem; color: #fff; text-decoration: none; font-family: var(--display); font-weight: 800; font-size: 1.35rem; }
+.au-logo:hover { color: #fff; }
+.au-logo img { width: 2.5rem; height: 2.5rem; }
+.au-logo span { padding: .15rem .45rem; border-radius: 5px; background: var(--gold); color: var(--ink); font-size: .7rem; letter-spacing: .08em; }
+.au-pitch h2 { margin: 0; font-size: clamp(2rem, 3.6vw, 3rem); color: #fff; max-width: 15ch; }
+.au-pitch p { margin: 1rem 0 0; max-width: 30rem; color: #C9D3EE; font-size: 1.1rem; }
+.au-points { display: grid; gap: .85rem; margin: 2rem 0 0; padding: 0; list-style: none; }
+.au-points li { display: flex; gap: .75rem; align-items: flex-start; color: #D6DEF2; }
+.au-points .au-ic { display: grid; place-items: center; width: 2.2rem; height: 2.2rem; flex: none; border-radius: 10px; background: rgba(255, 255, 255, .1); color: var(--gold); }
+.au-points strong { display: block; color: #fff; }
+.au-onair { display: inline-flex; align-items: center; gap: .5rem; padding: .35rem .8rem .35rem .6rem; border-radius: 999px; background: rgba(214, 40, 40, .2);
+    font-size: .85rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+.au-onair i { width: .55rem; height: .55rem; border-radius: 50%; background: var(--lamp); animation: au-beat 1.8s ease-out infinite; }
+@keyframes au-beat { 0% { box-shadow: 0 0 0 0 rgba(214, 40, 40, .7); } 80%, 100% { box-shadow: 0 0 0 .6rem rgba(214, 40, 40, 0); } }
+.au-foot-note { color: #AEB9D6; font-size: .9rem; }
+.au-foot-note a { color: #fff; }
+
+.au-main { display: flex; flex-direction: column; justify-content: center; padding: clamp(2rem, 5vw, 4rem) clamp(1.25rem, 5vw, 4.5rem); background: #fff; }
+.au-card { width: 100%; max-width: 27rem; margin: 0 auto; }
+.au-card--wide { max-width: 34rem; }
+.au-icon { display: grid; place-items: center; width: 3.4rem; height: 3.4rem; margin-bottom: 1.25rem; border-radius: 16px; background: var(--mist); color: var(--ink); }
+.au-icon--gold { background: #FFF1CC; color: #6B4D00; }
+.au-icon--red { background: #FDE7E7; color: #7A1010; }
+.au-card h1 { margin: 0; font-size: clamp(1.9rem, 4vw, 2.4rem); }
+.au-lede { margin: .5rem 0 1.75rem; color: var(--muted); }
+.au-lede strong { color: var(--ink); overflow-wrap: anywhere; }
+.au-back { display: inline-flex; align-items: center; gap: .35rem; margin-top: 1.75rem; }
+
+/* ------------------------------------------------------------------ messages */
+.au-msg { display: flex; gap: .7rem; align-items: flex-start; margin-bottom: 1.25rem; padding: .85rem 1rem; border-radius: 12px; line-height: 1.45; }
+.au-msg svg { flex: none; margin-top: .1rem; }
+.au-msg--ok { background: #E2F5E9; color: #11522B; }
+.au-msg--error { background: #FDE7E7; color: #7A1010; }
+
+/* ------------------------------------------------------------------ fields */
+.au-field { margin-bottom: 1.15rem; }
+.au-field-top { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; }
+.au-label { display: block; margin-bottom: .4rem; font-weight: 700; }
+.au-label small { font-weight: 400; color: var(--muted); }
+.au-field-top a { font-size: .93rem; }
+.au-control { position: relative; }
+.au-input { display: block; width: 100%; min-height: 3.25rem; padding: .8rem 1rem; border: 2px solid var(--line); border-radius: 12px; background: #fff;
+    color: var(--ink); font: inherit; transition: border-color .15s, box-shadow .15s; }
+.au-input:hover { border-color: #AFBEDD; }
+.au-input:focus { outline: none; border-color: var(--ink); box-shadow: 0 0 0 4px rgba(14, 27, 61, .12); }
+.au-input[aria-invalid="true"] { border-color: var(--lamp); }
+.au-input[aria-invalid="true"]:focus { box-shadow: 0 0 0 4px rgba(214, 40, 40, .15); }
+.au-control--icon .au-input { padding-left: 2.85rem; }
+.au-control--icon > svg { position: absolute; left: 1rem; top: 50%; translate: 0 -50%; color: var(--muted); pointer-events: none; }
+.au-control--toggle .au-input { padding-right: 3.4rem; }
+.au-reveal { position: absolute; right: .35rem; top: 50%; translate: 0 -50%; display: grid; place-items: center; width: 2.75rem; height: 2.75rem;
+    border: 0; border-radius: 10px; background: transparent; color: var(--muted); cursor: pointer; }
+.au-reveal:hover { background: var(--mist); color: var(--ink); }
+.au-error { display: flex; gap: .4rem; align-items: flex-start; margin: .45rem 0 0; color: #A11515; font-size: .93rem; font-weight: 700; }
+.au-hint { margin: .45rem 0 0; color: var(--muted); font-size: .93rem; }
+.au-caps { margin: .45rem 0 0; color: #6B4D00; font-size: .93rem; font-weight: 700; }
+
+.au-code { text-align: center; font-family: var(--display); font-size: 1.8rem; font-weight: 800; letter-spacing: .5em; padding-left: 1.5rem; }
+
+.au-rules { display: grid; gap: .3rem; margin: .65rem 0 0; padding: 0; list-style: none; font-size: .93rem; color: var(--muted); }
+.au-rules li { display: flex; gap: .5rem; align-items: center; }
+.au-rules li::before { content: ""; width: .5rem; height: .5rem; flex: none; border-radius: 50%; background: var(--line); }
+
+/* ------------------------------------------------------------------ buttons */
+.au-btn { display: inline-flex; align-items: center; justify-content: center; gap: .55rem; width: 100%; min-height: 3.3rem; padding: .8rem 1.4rem;
+    border: 2px solid transparent; border-radius: 999px; background: var(--gold); color: var(--ink); font: inherit; font-weight: 700; font-size: 1.05rem;
+    text-decoration: none; cursor: pointer; box-shadow: 0 8px 20px -10px rgba(245, 168, 0, .9); transition: background-color .15s, transform .15s; }
+.au-btn:hover { background: #FFB91F; color: var(--ink); }
+.au-btn:active { transform: translateY(1px); }
+.au-btn:disabled { opacity: .6; cursor: wait; }
+.au-btn--ink { background: var(--ink); color: #fff; box-shadow: none; }
+.au-btn--ink:hover { background: var(--panel); color: #fff; }
+.au-linkbtn { display: inline-flex; align-items: center; gap: .35rem; min-height: 44px; padding: 0; border: 0; background: none; color: var(--ink); font: inherit;
+    font-weight: 700; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.au-linkbtn:disabled { color: var(--muted); text-decoration: none; cursor: not-allowed; }
+.au-alt { margin: 1.5rem 0 0; text-align: center; color: var(--muted); }
+.au-divider { height: 1px; margin: 1.75rem 0; background: var(--line); }
+.au-secure { display: flex; gap: .55rem; align-items: center; justify-content: center; margin-top: 1.5rem; color: var(--muted); font-size: .88rem; }
+
+/* ------------------------------------------------------------------ small screens */
+@media (max-width: 900px) {
+    .au { grid-template-columns: 1fr; min-height: 0; }
+    .au-brand { padding: 1.25rem 1.25rem 1.5rem; gap: 1rem; }
+    .au-brand::after { width: 20rem; height: 20rem; right: -10rem; bottom: -12rem; }
+    .au-pitch h2 { font-size: 1.5rem; max-width: none; }
+    .au-pitch p, .au-points, .au-foot-note { display: none; }
+    .au-main { justify-content: flex-start; padding-top: 2rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .au-onair i { animation: none; }
+    .au-btn { transition: none; }
+}

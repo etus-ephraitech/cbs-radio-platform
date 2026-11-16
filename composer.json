@@ -26,7 +26,8 @@
   "prefer-stable": true,
   "require": {
     "php": "^8.2",
-    "codeigniter4/framework": "^4.7"
+    "codeigniter4/framework": "^4.7",
+    "ephraitech/ci4-auth": "^0.10.0"
   },
   "require-dev": {
     "fakerphp/faker": "^1.9",
@@ -49,7 +50,7 @@
       "Tests\\Support\\": "tests/_support"
     }
   },
-   "config": {
+  "config": {
     "optimize-autoloader": true,
     "preferred-install": "dist",
     "sort-packages": true,
@@ -64,6 +65,10 @@
     "cs-check": "phpcs --standard=PSR12 app/",
     "cs-fix": "phpcbf --standard=PSR12 app/",
     "analyse": "phpstan analyse app/ --level=5",
-    "test": "phpunit"
+    "test": "phpunit",
+    "test:unit": "phpunit --testsuite unit",
+    "test:database": "phpunit --testsuite database",
+    "test:feature": "phpunit --testsuite feature",
+    "test:debug": "phpunit --stop-on-error --stop-on-failure --testdox"
   }
 }

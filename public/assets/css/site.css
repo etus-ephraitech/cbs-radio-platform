@@ -1,0 +1,364 @@
+/*
+ * CBS Radio — the visitor's flow in the v1 UI: choosing an occasion, the greeting form (package, message, gifts,
+ * details, review), paying, and the status pages. Used by app/Views/v1/booking/* and app/Views/v1/gifts/*.
+ *
+ * These pages use the lean public layout (no Bootstrap), so everything they need is here. Colours and type come
+ * from the variables layouts/public.php defines (--ink, --panel, --gold, --lamp, --mist, --line, --muted,
+ * --display, --body), so the brand is set in one place. Everything is prefixed ck- ("checkout"). The message editor
+ * and voice recorder keep their own bk- styles in booking.css.
+ */
+
+:root {
+    --ck-radius: 18px;
+    --ck-radius-sm: 12px;
+    --ck-shadow: 0 1px 2px rgba(14, 27, 61, .06), 0 8px 24px -12px rgba(14, 27, 61, .18);
+    --ck-shadow-lift: 0 2px 4px rgba(14, 27, 61, .06), 0 18px 40px -18px rgba(14, 27, 61, .35);
+    --ck-ok: #157A43;
+    --ck-ok-bg: #E2F5E9;
+    --ck-surface: #fff;
+    --ck-page: #F5F7FC;
+}
+
+/* ------------------------------------------------------------------ page frame */
+.ck-sr { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+.ck-page [hidden] { display: none !important; } /* flex and grid rules below must never un-hide what a script hid */
+.ck-page { background: var(--ck-page); padding-bottom: 5rem; min-height: 60vh; }
+.ck-wrap { width: min(1180px, 100% - 2.5rem); margin-inline: auto; }
+.ck-narrow { width: min(760px, 100% - 2.5rem); margin-inline: auto; }
+
+.ck-hero {
+    position: relative; overflow: hidden; color: #fff;
+    background:
+        radial-gradient(60rem 22rem at 110% -30%, rgba(245, 168, 0, .22), transparent 60%),
+        radial-gradient(40rem 20rem at -10% 120%, rgba(214, 40, 40, .18), transparent 60%),
+        linear-gradient(160deg, var(--ink) 0%, var(--panel) 100%);
+    padding: 2.4rem 0 4.6rem;
+}
+.ck-hero::after { /* soft radio waves */
+    content: ""; position: absolute; right: -6rem; top: 50%; width: 26rem; height: 26rem; translate: 0 -50%; pointer-events: none;
+    border-radius: 50%; border: 2px solid rgba(255, 255, 255, .06);
+    box-shadow: 0 0 0 3rem rgba(255, 255, 255, .025), 0 0 0 6rem rgba(255, 255, 255, .02);
+}
+.ck-hero .ck-wrap, .ck-hero .ck-narrow { position: relative; z-index: 1; }
+.ck-crumb { display: flex; width: max-content; align-items: center; gap: .4rem; margin: 0 0 .9rem; color: #C9D3EE; font-weight: 700; font-size: .95rem; text-decoration: none; }
+.ck-crumb:hover { color: #fff; }
+.ck-eyebrow { display: inline-flex; align-items: center; gap: .5rem; margin: 0 0 .6rem; padding: .3rem .8rem; border-radius: 999px;
+    background: rgba(255, 255, 255, .1); color: #FFE2A1; font-size: .85rem; font-weight: 700; letter-spacing: .02em; }
+.ck-hero h1 { margin: 0; font-size: clamp(1.9rem, 4.6vw, 3rem); color: #fff; }
+.ck-hero p.ck-lede { margin: .65rem 0 0; max-width: 46rem; color: #D6DEF2; font-size: 1.1rem; }
+
+.ck-lift { margin-top: -3rem; position: relative; z-index: 2; }
+
+/* ------------------------------------------------------------------ surfaces */
+.ck-card { background: var(--ck-surface); border-radius: var(--ck-radius); box-shadow: var(--ck-shadow); }
+.ck-card--pad { padding: clamp(1.25rem, 3vw, 2rem); }
+.ck-card + .ck-card { margin-top: 1.25rem; }
+.ck-card h2, .ck-section-title { margin: 0 0 .35rem; font-size: clamp(1.3rem, 2.6vw, 1.65rem); }
+.ck-sub { margin: 0 0 1.4rem; color: var(--muted); }
+
+.ck-alert { display: flex; gap: .75rem; align-items: flex-start; padding: .9rem 1.1rem; border-radius: var(--ck-radius-sm); line-height: 1.5; }
+.ck-alert svg { flex: none; margin-top: .15rem; }
+.ck-alert--error { background: #FDE7E7; color: #7A1010; }
+.ck-alert--info { background: var(--mist); color: var(--ink); }
+.ck-alert--warn { background: #FFF3D1; color: #5C4200; }
+.ck-alert--ok { background: var(--ck-ok-bg); color: #11522B; }
+.ck-alert ul { margin: 0; padding-left: 1.1rem; }
+.ck-alert + * { margin-top: 1.25rem; }
+
+/* ------------------------------------------------------------------ buttons */
+.ck-btn { display: inline-flex; align-items: center; justify-content: center; gap: .55rem; min-height: 3.1rem; padding: .75rem 1.5rem;
+    border-radius: 999px; border: 2px solid transparent; font: inherit; font-weight: 700; line-height: 1.2; text-decoration: none; cursor: pointer;
+    transition: background-color .15s, border-color .15s, color .15s, transform .15s, box-shadow .15s; }
+.ck-btn:active { transform: translateY(1px); }
+.ck-btn:disabled { opacity: .55; cursor: not-allowed; transform: none; }
+.ck-btn--gold { background: var(--gold); color: var(--ink); box-shadow: 0 6px 16px -8px rgba(245, 168, 0, .9); }
+.ck-btn--gold:hover:not(:disabled) { background: #FFB91F; }
+.ck-btn--ink { background: var(--ink); color: #fff; }
+.ck-btn--ink:hover:not(:disabled) { background: var(--panel); }
+.ck-btn--line { background: transparent; color: var(--ink); border-color: var(--line); }
+.ck-btn--line:hover:not(:disabled) { border-color: var(--ink); }
+.ck-btn--block { width: 100%; }
+.ck-btn--lg { min-height: 3.5rem; font-size: 1.08rem; padding-inline: 1.9rem; }
+.ck-link { display: inline-flex; align-items: center; gap: .35rem; padding: .4rem .1rem; background: none; border: 0; font: inherit; font-weight: 700;
+    color: var(--ink); text-decoration: underline; text-underline-offset: 4px; cursor: pointer; min-height: 44px; }
+.ck-link:hover { color: var(--panel); }
+:where(.ck-btn, .ck-link, .ck-choice, .ck-step-btn, .ck-qty button):focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
+
+/* ------------------------------------------------------------------ fields */
+.ck-field { display: grid; gap: .4rem; margin-bottom: 1.15rem; }
+.ck-field:last-child { margin-bottom: 0; }
+.ck-label { font-weight: 700; }
+.ck-hint { margin: 0; color: var(--muted); font-size: .93rem; }
+.ck-optional { font-weight: 400; color: var(--muted); }
+.ck-input, .ck-select, .ck-textarea, #bookingForm .form-control, #bookingForm .form-select {
+    display: block; width: 100%; min-height: 3.1rem; padding: .75rem .95rem; border: 2px solid var(--line); border-radius: var(--ck-radius-sm);
+    background: #fff; color: var(--ink); font: inherit; line-height: 1.4; transition: border-color .15s, box-shadow .15s; }
+.ck-textarea, #bookingForm textarea.form-control { min-height: 8rem; resize: vertical; line-height: 1.6; }
+.ck-input:hover, .ck-select:hover, .ck-textarea:hover, #bookingForm .form-control:hover { border-color: #AFBEDD; }
+.ck-input:focus, .ck-select:focus, .ck-textarea:focus, #bookingForm .form-control:focus, #bookingForm .form-select:focus {
+    outline: none; border-color: var(--ink); box-shadow: 0 0 0 4px rgba(14, 27, 61, .12); }
+.ck-select, #bookingForm .form-select { appearance: none; padding-right: 2.6rem;
+    background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%230E1B3D' stroke-width='2.5' stroke-linecap='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right 1rem center; }
+#bookingForm .form-label { display: block; margin-bottom: .4rem; font-weight: 700; }
+.ck-grid-2 { display: grid; gap: 0 1.1rem; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.ck-input-icon { position: relative; }
+.ck-input-icon > svg { position: absolute; left: .95rem; top: 50%; translate: 0 -50%; color: var(--muted); pointer-events: none; }
+.ck-input-icon > .ck-input { padding-left: 2.75rem; }
+
+/* ------------------------------------------------------------------ the stepper */
+.ck-steps { display: flex; gap: .4rem; margin: 1.6rem 0 0; padding: 0; list-style: none; counter-reset: ck-step; overflow-x: auto; scrollbar-width: none; }
+.ck-steps::-webkit-scrollbar { display: none; }
+.ck-steps li { flex: 1 0 auto; counter-increment: ck-step; }
+.ck-step-btn { display: flex; align-items: center; gap: .55rem; width: 100%; padding: .55rem .9rem .55rem .55rem; border: 0; border-radius: 999px;
+    background: rgba(255, 255, 255, .08); color: #C9D3EE; font: inherit; font-size: .93rem; font-weight: 700; white-space: nowrap; text-decoration: none; cursor: default; }
+.ck-step-btn::before { content: counter(ck-step); display: grid; place-items: center; width: 1.8rem; height: 1.8rem; border-radius: 50%; flex: none;
+    background: rgba(255, 255, 255, .14); color: #fff; font-size: .85rem; }
+.ck-steps [data-state="done"] .ck-step-btn { color: #fff; cursor: pointer; }
+.ck-steps [data-state="done"] .ck-step-btn::before { content: "✓"; background: var(--ck-ok); }
+.ck-steps [data-state="done"] .ck-step-btn:hover { background: rgba(255, 255, 255, .16); }
+.ck-steps [data-state="current"] .ck-step-btn { background: #fff; color: var(--ink); }
+.ck-steps [data-state="current"] .ck-step-btn::before { background: var(--gold); color: var(--ink); }
+.ck-steps a.ck-step-btn { cursor: pointer; color: #fff; }
+.ck-steps a.ck-step-btn::before { content: "✓"; background: var(--ck-ok); }
+
+/* ------------------------------------------------------------------ the form layout */
+.ck-layout { display: grid; gap: 1.5rem; grid-template-columns: minmax(0, 1fr) 360px; align-items: start; }
+.ck-main { min-width: 0; }
+.ck-aside { position: sticky; top: 1.25rem; }
+
+.ck-panel { background: #fff; border-radius: var(--ck-radius); box-shadow: var(--ck-shadow); padding: clamp(1.25rem, 3vw, 2.1rem); }
+.ck-panel + .ck-panel { margin-top: 1.25rem; }
+.ck-panel-head { display: flex; align-items: flex-start; gap: .9rem; margin-bottom: 1.4rem; }
+.ck-panel-head .ck-num { display: grid; place-items: center; width: 2.4rem; height: 2.4rem; border-radius: 12px; flex: none;
+    background: var(--mist); color: var(--ink); font-family: var(--display); font-weight: 800; }
+.ck-panel-head h2 { margin: 0; font-size: clamp(1.25rem, 2.4vw, 1.55rem); }
+.ck-panel-head p { margin: .2rem 0 0; color: var(--muted); }
+.ck-panel-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .75rem; margin-top: 1.8rem; padding-top: 1.4rem; border-top: 1px solid var(--line); }
+.ck-panel-foot .ck-btn--gold { margin-left: auto; }
+
+/* Without JavaScript every step is shown, one after the other, and the form posts from the bottom. With it, one step
+   shows at a time and the step buttons move between them. */
+.ck-nav-js { display: none; }
+.ck-js .ck-nav-js { display: inline-flex; }
+.ck-js .ck-nojs-only { display: none; }
+.ck-js .ck-step[hidden] { display: none; }
+.ck-js .ck-step { animation: ck-in .28s ease-out; }
+@keyframes ck-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+/* ------------------------------------------------------------------ choice cards (packages, shows, gifts) */
+.ck-choices { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fill, minmax(min(100%, 15.5rem), 1fr)); }
+.ck-choice { position: relative; display: flex; flex-direction: column; gap: .5rem; min-height: 100%; padding: 1.25rem 1.25rem 1.15rem;
+    border: 2px solid var(--line); border-radius: var(--ck-radius); background: #fff; cursor: pointer;
+    transition: border-color .15s, box-shadow .15s, transform .15s, background-color .15s; }
+.ck-choice:hover { border-color: #9FB0D6; box-shadow: var(--ck-shadow); transform: translateY(-2px); }
+.ck-choice input[type="radio"] { position: absolute; opacity: 0; pointer-events: none; }
+.ck-choice:has(input:checked), .ck-choice.is-selected { border-color: var(--ink); background: linear-gradient(180deg, #F4F7FE, #fff); box-shadow: var(--ck-shadow-lift); }
+.ck-choice:has(input:focus-visible) { outline: 3px solid var(--ink); outline-offset: 3px; }
+.ck-tick { position: absolute; top: 1rem; right: 1rem; display: grid; place-items: center; width: 1.6rem; height: 1.6rem; border-radius: 50%;
+    border: 2px solid var(--line); color: transparent; transition: background-color .15s, border-color .15s, color .15s; }
+.ck-choice:has(input:checked) .ck-tick, .ck-choice.is-selected .ck-tick { background: var(--ink); border-color: var(--ink); color: #fff; }
+.ck-choice-name { padding-right: 2rem; font-family: var(--display); font-weight: 800; font-size: 1.15rem; line-height: 1.2; }
+.ck-choice-price { font-family: var(--display); font-weight: 800; font-size: 1.6rem; line-height: 1; letter-spacing: -.02em; }
+.ck-choice-price small { font-size: .55em; font-weight: 700; color: var(--muted); letter-spacing: 0; margin-right: .25rem; }
+.ck-choice-note { margin: 0; color: var(--muted); font-size: .95rem; }
+.ck-choice-tags { display: flex; flex-wrap: wrap; gap: .35rem; margin-top: auto; padding-top: .35rem; }
+.ck-tag { display: inline-flex; align-items: center; gap: .3rem; padding: .2rem .6rem; border-radius: 999px; background: var(--mist); color: var(--ink);
+    font-size: .8rem; font-weight: 700; }
+.ck-tag--gold { background: #FFF1CC; color: #6B4D00; }
+.ck-tag--ok { background: var(--ck-ok-bg); color: #11522B; }
+
+/* ------------------------------------------------------------------ occasion cards */
+.ck-occasions { display: grid; gap: 1.1rem; grid-template-columns: repeat(auto-fill, minmax(min(100%, 17rem), 1fr)); }
+.ck-occasion { display: flex; flex-direction: column; gap: .75rem; padding: 1.4rem; border-radius: var(--ck-radius); background: #fff; color: var(--ink);
+    text-decoration: none; box-shadow: var(--ck-shadow); border: 2px solid transparent; transition: transform .18s, box-shadow .18s, border-color .18s; }
+.ck-occasion:hover { transform: translateY(-3px); box-shadow: var(--ck-shadow-lift); border-color: var(--gold); }
+.ck-occasion:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
+.ck-occasion h2 { margin: 0; font-size: 1.25rem; }
+.ck-occasion p { margin: 0; color: var(--muted); font-size: .97rem; }
+.ck-occasion-go { display: inline-flex; align-items: center; gap: .4rem; margin-top: auto; font-weight: 700; }
+.ck-occasion:hover .ck-occasion-go svg { transform: translateX(3px); }
+.ck-occasion-go svg { transition: transform .18s; }
+
+.ck-art { display: grid; place-items: center; width: 3.4rem; height: 3.4rem; border-radius: 16px; flex: none; color: #fff; }
+.ck-art--lg { width: 4rem; height: 4rem; border-radius: 18px; }
+.ck-art--rose { background: linear-gradient(135deg, #FF7A93, #D6336C); }
+.ck-art--gold { background: linear-gradient(135deg, #FFC542, #F08C00); }
+.ck-art--teal { background: linear-gradient(135deg, #3DD6C0, #0B8F86); }
+.ck-art--violet { background: linear-gradient(135deg, #A78BFA, #6D3FD9); }
+.ck-art--navy { background: linear-gradient(135deg, #4C6FD6, var(--ink)); }
+.ck-art--red { background: linear-gradient(135deg, #FF6B5E, var(--lamp)); }
+.ck-art--slate { background: linear-gradient(135deg, #8EA0C4, #46557A); }
+
+.ck-how { display: grid; gap: 1rem; grid-template-columns: repeat(4, minmax(0, 1fr)); margin: 2.5rem 0 0; padding: 0; list-style: none; counter-reset: ck-how; }
+.ck-how li { counter-increment: ck-how; display: flex; gap: .8rem; align-items: flex-start; }
+.ck-how li::before { content: counter(ck-how); display: grid; place-items: center; width: 2.2rem; height: 2.2rem; border-radius: 50%; flex: none;
+    background: var(--ink); color: var(--gold); font-family: var(--display); font-weight: 800; }
+.ck-how strong { display: block; }
+.ck-how span { color: var(--muted); font-size: .93rem; }
+
+/* ------------------------------------------------------------------ gifts */
+.ck-gifts { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr)); }
+.ck-gift { position: relative; display: flex; flex-direction: column; gap: .7rem; padding: 1.15rem; border: 2px solid var(--line); border-radius: var(--ck-radius);
+    background: #fff; transition: border-color .15s, box-shadow .15s, background-color .15s; }
+.ck-gift.is-selected { border-color: var(--ink); background: linear-gradient(180deg, #F4F7FE, #fff); box-shadow: var(--ck-shadow-lift); }
+.ck-gift.is-unavailable { opacity: .5; }
+.ck-gift-top { display: flex; gap: .85rem; align-items: center; }
+.ck-gift-name { margin: 0; font-family: var(--display); font-weight: 800; font-size: 1.05rem; line-height: 1.2; }
+.ck-gift-kind { margin: .15rem 0 0; color: var(--muted); font-size: .85rem; }
+.ck-gift-desc { margin: 0; color: var(--muted); font-size: .93rem; }
+.ck-gift-foot { display: flex; align-items: center; justify-content: space-between; gap: .5rem; margin-top: auto; }
+.ck-gift-price { font-family: var(--display); font-weight: 800; font-size: 1.15rem; }
+.ck-gift .ck-badge-in { position: absolute; top: .8rem; right: .8rem; }
+
+.ck-qty { display: inline-flex; align-items: center; border: 2px solid var(--line); border-radius: 999px; background: #fff; }
+.ck-qty button { display: grid; place-items: center; width: 2.6rem; height: 2.6rem; border: 0; border-radius: 50%; background: transparent;
+    color: var(--ink); font: inherit; font-size: 1.25rem; font-weight: 700; cursor: pointer; }
+.ck-qty button:hover:not(:disabled) { background: var(--mist); }
+.ck-qty button:disabled { color: #B5C0D8; cursor: not-allowed; }
+.ck-qty input { width: 2.4rem; border: 0; background: transparent; text-align: center; font: inherit; font-weight: 700; color: var(--ink); -moz-appearance: textfield; }
+.ck-qty input::-webkit-outer-spin-button, .ck-qty input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.ck-qty input:focus { outline: none; }
+.ck-add { min-height: 2.75rem; padding: .45rem 1.1rem; }
+.ck-js .ck-gift .ck-qty { display: none; }
+.ck-js .ck-gift.is-selected .ck-qty { display: inline-flex; }
+.ck-js .ck-gift.is-selected .ck-add { display: none; }
+.ck-gift .ck-add { display: none; }
+.ck-js .ck-gift .ck-add { display: inline-flex; }
+
+.ck-delivery { margin-top: 1.5rem; padding: 1.25rem; border-radius: var(--ck-radius); background: var(--mist); }
+.ck-delivery[hidden] { display: none; }
+.ck-delivery h3 { margin: 0 0 .9rem; font-size: 1.1rem; }
+
+.ck-empty { display: grid; justify-items: center; gap: .6rem; padding: 2.5rem 1rem; text-align: center; color: var(--muted); }
+.ck-empty strong { color: var(--ink); font-family: var(--display); font-size: 1.2rem; }
+
+/* ------------------------------------------------------------------ the summary */
+.ck-summary { background: #fff; border-radius: var(--ck-radius); box-shadow: var(--ck-shadow); overflow: hidden; }
+.ck-summary-head { display: flex; align-items: center; gap: .75rem; padding: 1.15rem 1.3rem; background: linear-gradient(160deg, var(--ink), var(--panel)); color: #fff; }
+.ck-summary-head h2 { margin: 0; font-size: 1.15rem; color: #fff; }
+.ck-summary-head .ck-lampdot { width: .65rem; height: .65rem; border-radius: 50%; background: var(--lamp); box-shadow: 0 0 0 4px rgba(214, 40, 40, .3); animation: ck-live 2.2s ease-in-out infinite; }
+@keyframes ck-live { 50% { box-shadow: 0 0 0 7px rgba(214, 40, 40, .08); } }
+.ck-summary-body { padding: 1.15rem 1.3rem 1.3rem; }
+.ck-sum-row { display: flex; justify-content: space-between; gap: 1rem; padding: .55rem 0; border-bottom: 1px dashed var(--line); font-size: .97rem; }
+.ck-sum-row:last-of-type { border-bottom: 0; }
+.ck-sum-row > span:first-child { color: var(--muted); }
+.ck-sum-row > span:last-child { text-align: right; font-weight: 700; overflow-wrap: anywhere; }
+.ck-sum-quote { margin: .75rem 0 .25rem; padding: .85rem 1rem; border-radius: var(--ck-radius-sm); background: var(--mist); font-size: .95rem; line-height: 1.55;
+    overflow-wrap: anywhere; position: relative; }
+.ck-sum-quote::before { content: "“"; position: absolute; left: .55rem; top: -.35rem; font-family: var(--display); font-size: 2.2rem; color: var(--gold); line-height: 1; }
+.ck-sum-quote:empty { display: none; }
+.ck-sum-quote p { margin: 0 0 0 .9rem; }
+.ck-sum-gifts { margin: .25rem 0 0; padding: 0; list-style: none; }
+.ck-sum-gifts li { display: flex; justify-content: space-between; gap: 1rem; padding: .35rem 0; font-size: .95rem; }
+.ck-sum-total { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; margin-top: .9rem; padding-top: .9rem; border-top: 2px solid var(--ink); }
+.ck-sum-total span:first-child { font-weight: 700; }
+.ck-sum-total strong { font-family: var(--display); font-size: 1.65rem; letter-spacing: -.02em; }
+.ck-trust { display: grid; gap: .55rem; margin: 1rem 0 0; padding: 0; list-style: none; color: var(--muted); font-size: .9rem; }
+.ck-trust li { display: flex; gap: .55rem; align-items: flex-start; }
+.ck-trust svg { flex: none; color: var(--ck-ok); margin-top: .2rem; }
+
+/* The phone's bottom bar: the running total and the step's main button, always in reach of a thumb. */
+.ck-bar { display: none; }
+
+/* ------------------------------------------------------------------ review */
+.ck-review { display: grid; gap: 1rem; }
+.ck-review-block { padding: 1.1rem 1.2rem; border: 2px solid var(--line); border-radius: var(--ck-radius-sm); }
+.ck-review-block h3 { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin: 0 0 .55rem; font-size: 1.05rem; }
+.ck-review-block h3 .ck-link { min-height: 0; padding: 0; font-size: .92rem; }
+.ck-review-block p { margin: 0; }
+.ck-review-block .ck-muted { color: var(--muted); }
+.ck-review-msg { white-space: pre-wrap; overflow-wrap: anywhere; }
+
+/* ------------------------------------------------------------------ pay and status pages */
+.ck-split { display: grid; gap: 1.5rem; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); align-items: start; }
+.ck-amount { margin: .25rem 0 0; font-family: var(--display); font-weight: 800; font-size: clamp(2.2rem, 6vw, 3.1rem); letter-spacing: -.03em; line-height: 1; }
+.ck-ref { display: inline-flex; align-items: center; gap: .5rem; margin-top: .85rem; padding: .45rem .9rem; border-radius: 999px; background: rgba(255, 255, 255, .1);
+    font-weight: 700; color: #fff; }
+.ck-ref code { font-family: inherit; color: var(--gold); letter-spacing: .03em; }
+
+.ck-howto { margin: 0; padding: 0; list-style: none; counter-reset: ck-pay; display: grid; gap: 1rem; }
+.ck-howto li { counter-increment: ck-pay; display: grid; grid-template-columns: 2.3rem 1fr; gap: .9rem; align-items: start; }
+.ck-howto li::before { content: counter(ck-pay); display: grid; place-items: center; width: 2.3rem; height: 2.3rem; border-radius: 50%;
+    background: var(--mist); color: var(--ink); font-family: var(--display); font-weight: 800; }
+.ck-howto p { margin: .35rem 0 0; }
+
+.ck-code { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem; margin-top: .55rem; padding: .85rem 1rem; border-radius: var(--ck-radius-sm);
+    border: 2px dashed #C7D2EA; background: #FAFBFE; }
+.ck-code strong { font-family: var(--display); font-size: 1.4rem; letter-spacing: .06em; }
+.ck-copy { margin-left: auto; min-height: 2.5rem; padding: .35rem .95rem; font-size: .9rem; }
+.ck-instructions { margin: 0; white-space: pre-line; }
+
+.ck-waiting { display: flex; gap: 1rem; align-items: center; padding: 1.1rem; border-radius: var(--ck-radius-sm); background: var(--mist); }
+.ck-pulse { position: relative; width: 3rem; height: 3rem; flex: none; border-radius: 50%; background: var(--gold); display: grid; place-items: center; color: var(--ink); }
+.ck-pulse::after { content: ""; position: absolute; inset: 0; border-radius: 50%; border: 3px solid var(--gold); animation: ck-ring 1.8s ease-out infinite; }
+@keyframes ck-ring { from { transform: scale(1); opacity: .8; } to { transform: scale(1.8); opacity: 0; } }
+
+.ck-timeline { margin: 0; padding: 0; list-style: none; display: grid; gap: 0; }
+.ck-timeline li { position: relative; display: grid; grid-template-columns: 2.2rem 1fr; gap: .9rem; padding-bottom: 1.35rem; }
+.ck-timeline li:last-child { padding-bottom: 0; }
+.ck-timeline li::after { content: ""; position: absolute; left: calc(1.1rem - 1px); top: 2.3rem; bottom: .15rem; width: 2px; background: var(--line); }
+.ck-timeline li:last-child::after { display: none; }
+.ck-dot { display: grid; place-items: center; width: 2.2rem; height: 2.2rem; border-radius: 50%; background: #fff; border: 2px solid var(--line); color: var(--muted); z-index: 1; }
+.ck-timeline [data-state="done"] .ck-dot { background: var(--ck-ok); border-color: var(--ck-ok); color: #fff; }
+.ck-timeline [data-state="done"]::after { background: var(--ck-ok); }
+.ck-timeline [data-state="current"] .ck-dot { background: var(--gold); border-color: var(--gold); color: var(--ink); box-shadow: 0 0 0 5px rgba(245, 168, 0, .2); }
+.ck-timeline [data-state="stopped"] .ck-dot { background: var(--lamp); border-color: var(--lamp); color: #fff; }
+.ck-timeline strong { display: block; margin-top: .2rem; }
+.ck-timeline span { color: var(--muted); font-size: .93rem; }
+
+.ck-facts { display: grid; grid-template-columns: max-content 1fr; gap: .6rem 1.25rem; margin: 0; }
+.ck-facts dt { color: var(--muted); }
+.ck-facts dd { margin: 0; font-weight: 700; overflow-wrap: anywhere; }
+.ck-facts dd.ck-msg { font-weight: 400; white-space: pre-wrap; }
+
+.ck-pill { display: inline-flex; align-items: center; gap: .4rem; padding: .3rem .85rem; border-radius: 999px; font-weight: 700; font-size: .88rem; }
+.ck-pill::before { content: ""; width: .5rem; height: .5rem; border-radius: 50%; background: currentColor; }
+.ck-pill--wait { background: #FFF1CC; color: #6B4D00; }
+.ck-pill--review { background: #E4EEFF; color: #1D3F99; }
+.ck-pill--ok { background: var(--ck-ok-bg); color: #11522B; }
+.ck-pill--stop { background: #FDE7E7; color: #7A1010; }
+
+.ck-actions { display: flex; flex-wrap: wrap; gap: .75rem; margin-top: 1.5rem; }
+
+/* ------------------------------------------------------------------ responsive */
+@media (max-width: 1020px) {
+    .ck-layout { grid-template-columns: 1fr; }
+    .ck-aside { position: static; }
+    .ck-split { grid-template-columns: 1fr; }
+    .ck-how { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 720px) {
+    .ck-hero { padding: 1.75rem 0 4rem; }
+    .ck-grid-2 { grid-template-columns: 1fr; }
+    .ck-how { grid-template-columns: 1fr; }
+    .ck-js .ck-bar { display: flex; position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; align-items: center; gap: 1rem;
+        padding: .75rem 1rem calc(.75rem + env(safe-area-inset-bottom, 0px)); background: #fff; box-shadow: 0 -10px 30px -12px rgba(14, 27, 61, .35); }
+    .ck-bar-total { display: grid; line-height: 1.2; }
+    .ck-bar-total span { color: var(--muted); font-size: .8rem; font-weight: 700; }
+    .ck-bar-total strong { font-family: var(--display); font-size: 1.25rem; }
+    .ck-bar .ck-btn { flex: 1; }
+    .ck-js .ck-page { padding-bottom: 7rem; }
+    .ck-js .ck-aside .ck-summary { display: none; }
+    .ck-js .ck-aside .ck-summary.ck-summary--review { display: block; }
+    .ck-facts { grid-template-columns: 1fr; gap: .1rem; }
+    .ck-facts dd { margin-bottom: .6rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .ck-js .ck-step, .ck-pulse::after, .ck-summary-head .ck-lampdot { animation: none; }
+    .ck-choice, .ck-occasion, .ck-btn { transition: none; }
+}
+
+/* ------------------------------------------------------------------ status badges
+ * The shared status helpers (cbs_booking_status_badge() and friends) print Bootstrap badge classes. These lean
+ * pages have no Bootstrap, so the classes are drawn here, as the brand's soft pills.
+ */
+.ck-page .badge { display: inline-flex; align-items: center; gap: .4rem; padding: .3rem .85rem; border-radius: 999px; font-size: .88rem; font-weight: 700; line-height: 1.3; white-space: nowrap; }
+.ck-page .badge::before { content: ""; width: .5rem; height: .5rem; border-radius: 50%; background: currentColor; }
+.ck-page .badge.bg-secondary { background: #E9EDF6; color: #46557A; }
+.ck-page .badge.bg-warning { background: #FFF1CC; color: #6B4D00; }
+.ck-page .badge.bg-info { background: #E4EEFF; color: #1D3F99; }
+.ck-page .badge.bg-success { background: var(--ck-ok-bg); color: #11522B; }
+.ck-page .badge.bg-danger { background: #FDE7E7; color: #7A1010; }
+.ck-page .badge.bg-dark { background: #E3E6EE; color: #2B3550; }
