@@ -25,20 +25,19 @@
   "minimum-stability": "stable",
   "prefer-stable": true,
   "require": {
-    "php": "^8.2",
-    "codeigniter4/framework": "^4.7"
+    "php": "^8.1",
+    "codeigniter4/framework": "^4.5",
+    "ephraitech/ci4-error-logger": "^1.0"
   },
   "require-dev": {
-    "fakerphp/faker": "^1.9",
-    "mikey179/vfsstream": "^1.6",
-    "phpunit/phpunit": "^10.5.16",
+    "phpunit/phpunit": "^10.5",
     "squizlabs/php_codesniffer": "^3.9",
-    "phpstan/phpstan": "^1.11"
+    "phpstan/phpstan": "^2.0",
+    "fakerphp/faker": "^1.23"
   },
   "autoload": {
     "psr-4": {
-      "App\\": "app/",
-      "Config\\": "app/Config/"
+      "App\\": "app/"
     },
     "exclude-from-classmap": [
       "**/Database/Migrations/**"
@@ -49,21 +48,24 @@
       "Tests\\Support\\": "tests/_support"
     }
   },
-   "config": {
+  "scripts": {
+    "post-update-cmd": [
+      "CodeIgniter\\Config\\Publisher::publishConfig"
+    ],
+    "cs-check": "phpcs",
+    "cs-fix": "phpcbf",
+    "analyse": "phpstan analyse -c phpstan.neon --memory-limit=1G",
+    "test": "phpunit",
+    "test:unit": "phpunit --testsuite unit",
+    "test:database": "phpunit --testsuite database",
+    "test:feature": "phpunit --testsuite feature"
+  },
+  "config": {
     "optimize-autoloader": true,
     "preferred-install": "dist",
     "sort-packages": true,
     "allow-plugins": {
       "composer/installers": true
     }
-  },
-  "scripts": {
-    "post-update-cmd": [
-      "CodeIgniter\\Config\\Publisher::publishConfig"
-    ],
-    "cs-check": "phpcs --standard=PSR12 app/",
-    "cs-fix": "phpcbf --standard=PSR12 app/",
-    "analyse": "phpstan analyse app/ --level=5",
-    "test": "phpunit"
   }
 }

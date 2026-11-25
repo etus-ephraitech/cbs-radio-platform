@@ -21,6 +21,7 @@
 
 # Builds / archives
 /builds/
+/build/
 
 # Logs
 *.log

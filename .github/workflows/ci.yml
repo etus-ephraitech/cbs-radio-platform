@@ -1,0 +1,72 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [develop, main]
+  push:
+    branches: [develop, main]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ALLOW_EMPTY_PASSWORD: true
+          MYSQL_DATABASE: cbs_radio_platform_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    # In the "testing" environment CodeIgniter uses the `tests` database group (not `default`), so these are the
+    # settings that matter. The driver (MySQLi) and the empty table prefix are set in phpunit.xml.dist.
+    env:
+      CI_ENVIRONMENT: testing
+      database.tests.hostname: 127.0.0.1
+      database.tests.database: cbs_radio_platform_test
+      database.tests.username: root
+      database.tests.password: ''
+      database.tests.DBDriver: MySQLi
+      database.tests.DBPrefix: ''
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: mbstring, intl, mysqli, bcmath, curl
+          coverage: none
+
+      # The voice-note tests make real audio and measure it with ffprobe, which is part of ffmpeg. Without it
+      # those tests are skipped, so install it and check it is there rather than quietly testing less.
+      - name: Install ffmpeg
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+          ffprobe -version | head -1
+
+      - name: Install dependencies
+        run: composer install --no-progress --prefer-dist
+
+      - name: Code style check (PSR-12)
+        run: composer cs-check
+
+      - name: Static analysis
+        run: composer analyse
+
+      # The tests build their own schema from these migrations; running them separately first means a broken
+      # migration fails here, under its own name, instead of as hundreds of failing tests.
+      - name: Run migrations against test DB
+        run: php spark migrate --all
+
+      - name: Run test suite
+        run: composer test

@@ -15,9 +15,9 @@ if [ -z "$STAGED_PHP_FILES" ]; then
     exit 0
 fi
 
-echo "Running PSR-12 style check on staged files..."
+echo "Running style check (rules in phpcs.xml) on staged files..."
 
-./vendor/bin/phpcs --standard=PSR12 $STAGED_PHP_FILES
+./vendor/bin/phpcs $STAGED_PHP_FILES
 
 if [ $? -ne 0 ]; then
     echo ""
