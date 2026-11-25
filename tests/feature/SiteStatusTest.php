@@ -116,6 +116,8 @@ final class SiteStatusTest extends AppFeatureTestCase
             'the gift catalogue'        => ['gifts'],
             'a gift payment page'       => ['gifts/{gift}/pay'],
             'a gift status page'        => ['gifts/{gift}/confirmation'],
+            'the gift cart'             => ['gifts/cart'],
+            'a partner shop order page' => ['gifts/checkout/0123456789abcdef0123456789abcdef'],
         ];
     }
 
@@ -197,6 +199,10 @@ final class SiteStatusTest extends AppFeatureTestCase
 
         $this->post('booking', $this->bookingForm())->assertStatus(503);
         $this->post('gifts', ['gift_id' => 1, 'sender_name' => 'x', 'sender_phone' => '0772123456', 'recipient_name' => 'y'])->assertStatus(503);
+        $this->post('gifts/cart/add', ['gift_id' => 1, 'quantity' => 1])->assertStatus(503);
+        $this->post('gifts/cart/update', ['quantities' => [1 => 2]])->assertStatus(503);
+        $this->post('gifts/cart/remove/1')->assertStatus(503);
+        $this->post('gifts/checkout')->assertStatus(503);
 
         $this->assertSame($before, $this->bookingCount(), 'A blocked booking must not be created behind the notice.');
         $this->assertSame(1, $this->db->table('gift_orders')->countAllResults());

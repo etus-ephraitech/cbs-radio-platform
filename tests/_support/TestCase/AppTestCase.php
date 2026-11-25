@@ -34,7 +34,7 @@ abstract class AppTestCase extends CIUnitTestCase
     /** Tables this project owns, emptied before every test. Order does not matter: foreign keys are off meanwhile. */
     private const TABLES = [
         'setting_changes', 'settings', 'message_templates', 'notifications_log', 'moderation_logs',
-        'payments', 'gift_orders', 'bookings', 'show_slots', 'shows', 'gifts', 'gift_vendors',
+        'payments', 'gift_orders', 'vendor_checkouts', 'bookings', 'show_slots', 'shows', 'gifts', 'gift_vendors',
         'rate_tiers', 'categories',
     ];
 

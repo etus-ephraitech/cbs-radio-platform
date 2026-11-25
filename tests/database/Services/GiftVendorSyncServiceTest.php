@@ -72,6 +72,39 @@ final class GiftVendorSyncServiceTest extends AppTestCase
         $this->assertNotNull($gift['synced_at']);
     }
 
+    public function testWhatOnlySomeVendorsReportIsStoredWhenReportedAndKeptWhenNot(): void
+    {
+        $vendor = $this->makeVendor(['slug' => 'acme']);
+        $client = new FakeVendorClient([$this->product('A1', ['image_url' => 'https://cdn.example.test/a1.jpg', 'minimum_delivery_hours' => 24, 'stock' => 7])]);
+        $sync   = $this->syncing(['acme' => $client]);
+
+        $sync->syncAll();
+
+        $gift = (new GiftModel())->findByVendorProduct((int) $vendor['id'], 'A1');
+        $this->assertSame(['https://cdn.example.test/a1.jpg', '24', '7'], [$gift['image_url'], (string) $gift['minimum_delivery_hours'], (string) $gift['stock_available']]);
+
+        // A later sync from a vendor that does not report them must not blank what is known.
+        $client->catalog = [$this->product('A1', ['price' => 26000.0])];
+        $sync->syncAll();
+
+        $gift = (new GiftModel())->findByVendorProduct((int) $vendor['id'], 'A1');
+        $this->assertSame('26000.00', $gift['price']);
+        $this->assertSame(['https://cdn.example.test/a1.jpg', '24', '7'], [$gift['image_url'], (string) $gift['minimum_delivery_hours'], (string) $gift['stock_available']]);
+    }
+
+    public function testStockThatRunsOutIsRecordedAsZeroNotForgotten(): void
+    {
+        $vendor = $this->makeVendor(['slug' => 'acme']);
+        $client = new FakeVendorClient([$this->product('A1', ['stock' => 5])]);
+        $sync   = $this->syncing(['acme' => $client]);
+        $sync->syncAll();
+
+        $client->catalog = [$this->product('A1', ['stock' => 0])];
+        $sync->syncAll();
+
+        $this->assertSame('0', (string) (new GiftModel())->findByVendorProduct((int) $vendor['id'], 'A1')['stock_available']);
+    }
+
     public function testSyncingAgainUpdatesWhatChangedWithoutDuplicating(): void
     {
         $vendor = $this->makeVendor(['slug' => 'acme']);

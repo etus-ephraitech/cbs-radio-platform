@@ -30,6 +30,9 @@ class FakeHttpGateway extends MockCURLRequest
     public string $answerBody = '{}';
     public ?string $failWith  = null;
 
+    /** @var array<int, array{status: int, body: string, headers: array<string, string>}> answers to give in turn, before falling back to the one above */
+    public array $queue = [];
+
     public static function install(int $status = 200, string $body = '{}', ?string $failWith = null): self
     {
         $config = config(App::class);
@@ -52,7 +55,29 @@ class FakeHttpGateway extends MockCURLRequest
             throw new RuntimeException($this->failWith);
         }
 
-        return (new Response(config(App::class)))->setStatusCode($this->answerStatus)->setBody($this->answerBody);
+        $next     = array_shift($this->queue);
+        $response = (new Response(config(App::class)))
+            ->setStatusCode($next['status'] ?? $this->answerStatus)
+            ->setBody($next['body'] ?? $this->answerBody);
+
+        foreach ($next['headers'] ?? [] as $name => $value) {
+            $response->setHeader($name, $value);
+        }
+
+        return $response;
+    }
+
+    /**
+     * Queues one answer for the next request that has none queued before it (the first queued is the first given).
+     *
+     * @param array<string, mixed>|string $body     an array is sent as JSON
+     * @param array<string, string>       $headers
+     */
+    public function enqueue(int $status, array|string $body = '{}', array $headers = []): self
+    {
+        $this->queue[] = ['status' => $status, 'body' => is_array($body) ? json_encode($body) : $body, 'headers' => $headers];
+
+        return $this;
     }
 
     /**

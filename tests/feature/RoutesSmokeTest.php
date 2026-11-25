@@ -33,9 +33,13 @@ final class RoutesSmokeTest extends AppFeatureTestCase
 
         $this->makePayment(['booking_id' => $booking['id']]);
 
+        // A purchase that is over, so that opening its pages never needs the vendor.
+        $purchase = $this->makeCheckout(['state' => 'cancelled']);
+
         $this->ids = [
             'category' => $category['id'], 'slug' => 'birthdays', 'tier' => $tier['id'], 'show' => $show['id'], 'booking' => $booking['id'],
             'gift' => $gift['id'], 'order' => $order['id'], 'vendor' => $this->makeVendor()['id'],
+            'purchase' => $purchase['id'], 'purchaseToken' => $purchase['public_token'],
             'template' => (int) (new \App\Models\MessageTemplateModel())->insert(['language' => 'English', 'title' => 'T', 'body' => 'B {recipient}']),
         ];
     }
@@ -53,7 +57,7 @@ final class RoutesSmokeTest extends AppFeatureTestCase
         $paths = [
             // public
             '/', 'booking', 'booking/{slug}', 'booking/{booking}/pay', 'booking/{booking}/confirmation',
-            'gifts', 'gifts/{order}/pay', 'gifts/{order}/confirmation',
+            'gifts', 'gifts/{order}/pay', 'gifts/{order}/confirmation', 'gifts/cart', 'gifts/checkout/{purchaseToken}',
             // presenter
             'presenter', 'presenter/shows/{show}',
             // admin
@@ -66,6 +70,7 @@ final class RoutesSmokeTest extends AppFeatureTestCase
             'admin/message-templates', 'admin/message-templates/create', 'admin/message-templates/{template}/edit',
             'admin/gifts', 'admin/gifts/create', 'admin/gifts/{gift}/edit',
             'admin/gift-vendors', 'admin/gift-vendors/create', 'admin/gift-vendors/{vendor}/edit',
+            'admin/gift-purchases', 'admin/gift-purchases/{purchase}',
         ];
 
         return array_combine($paths, array_map(static fn (string $p) => [$p], $paths));
