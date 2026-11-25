@@ -4,6 +4,7 @@ namespace App\Controllers\Admin;
 
 use App\Libraries\Settings\Registry;
 use App\Libraries\Settings\SettingsManager;
+use App\Libraries\SiteStatusPage;
 use App\Services\NotificationService;
 
 /**
@@ -102,5 +103,18 @@ class SettingController extends BaseAdminController
                 ? 'Test ' . strtoupper($channel) . ' sent. Check the recipient, and the notifications log.'
                 : 'The test ' . strtoupper($channel) . ' failed. Check the credentials in .env, then the notifications log for the attempt.'
         );
+    }
+
+    /**
+     * Staff preview of the coming soon or maintenance page, as it is with the settings last saved. It is an ordinary
+     * page here (not a 503, and not marked noindex) because the person looking is staff, in a browser tab.
+     */
+    public function previewStatus(string $mode)
+    {
+        if (! in_array($mode, [SiteStatusPage::COMING_SOON, SiteStatusPage::MAINTENANCE], true)) {
+            return redirect()->to(site_url('admin/settings/status'))->with('toastr_error', 'Unknown page to preview.');
+        }
+
+        return (new SiteStatusPage())->respond($this->response, $mode, true);
     }
 }

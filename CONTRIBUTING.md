@@ -291,6 +291,14 @@ A booking reference in any list should link to `admin/bookings/{id}`.
   `--gold`, `--lamp`, `--mist`, …). Text/background pairs there were checked against
   WCAG AA; re-check a pair before introducing a new one.
 
+- **Every new public route must carry the `SiteStatus` filter**, or visitors can still
+  reach it while the site is closed. Add `['filter' => \App\Filters\SiteStatus::class]`
+  to the route or its group in `app/Config/Routes/cbs_radio.php`. The only routes left
+  unfiltered on purpose are admin, the presenter portal and the payment callback; say so
+  in a comment if you add another. `tests/feature/SiteStatusTest.php` lists the routes.
+- **Status pages render with `SiteStatusPage::respond()`**, which sets the 503, the
+  robots header and no-store caching in one place. Don't render `site_status` directly.
+
 ## 14. The booking form's script and styles
 
 - Everything the message editor and recorder do is in `public/assets/js/booking.js`, in three marked parts (message

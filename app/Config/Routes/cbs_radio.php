@@ -20,8 +20,15 @@
  * alongside 'auth' in the same array — see the commented example under
  * the admin group.
  *
+ * Every PUBLIC route below carries the SiteStatus filter, so the whole public site closes together when staff
+ * set it to coming soon or under maintenance (Admin > Settings > Site status). A new public route belongs in a
+ * group that carries it. The Mobile Money callback, the presenter portal and the admin area are deliberately
+ * without it: a provider cannot be told to wait, and staff must be able to switch the site back on.
+ *
  * @var \CodeIgniter\Router\RouteCollection $routes
  */
+
+use App\Filters\SiteStatus;
 
 // ---------------------------------------------------------------------
 // Public: the homepage (LandingController).
@@ -32,12 +39,12 @@
 // that line must be DELETED or the framework's welcome page will keep
 // answering at "/" and this route will never run. See the README, step 2.
 // ---------------------------------------------------------------------
-$routes->get('/', 'LandingController::index');
+$routes->get('/', 'LandingController::index', ['filter' => SiteStatus::class]);
 
 // ---------------------------------------------------------------------
 // Public: booking flow (BookingController) — Dev A's area
 // ---------------------------------------------------------------------
-$routes->group('booking', static function ($routes) {
+$routes->group('booking', ['filter' => SiteStatus::class], static function ($routes) {
     $routes->get('/', 'BookingController::index');
     $routes->post('/', 'BookingController::store');
     $routes->get('(:num)/pay', 'BookingController::pay/$1');
@@ -52,7 +59,7 @@ $routes->group('booking', static function ($routes) {
 // ---------------------------------------------------------------------
 // Public: digital gifts flow (GiftOrderController) — Dev B's area
 // ---------------------------------------------------------------------
-$routes->group('gifts', static function ($routes) {
+$routes->group('gifts', ['filter' => SiteStatus::class], static function ($routes) {
     $routes->get('/', 'GiftOrderController::index');
     $routes->post('/', 'GiftOrderController::store');
     $routes->get('(:num)/pay', 'GiftOrderController::pay/$1');
@@ -94,6 +101,7 @@ $routes->group('admin', ['filter' => 'auth:session'], static function ($routes) 
     $routes->group('settings', static function ($routes) {
         $routes->get('/', 'Admin\SettingController::index');
         $routes->post('test/(:segment)', 'Admin\SettingController::sendTest/$1');
+        $routes->get('preview/(:segment)', 'Admin\SettingController::previewStatus/$1');
         $routes->get('(:segment)', 'Admin\SettingController::show/$1');
         $routes->post('(:segment)', 'Admin\SettingController::save/$1');
     });

@@ -236,6 +236,16 @@ $isActive = static function (string $segment) use ($currentPath): string {
             </div>
 
             <div class="admin-content">
+                <?php $siteMode = config('CbsRadio')->siteMode; ?>
+                <?php if (\App\Libraries\SiteStatusPage::closes($siteMode)): ?>
+                    <div class="alert alert-warning d-flex justify-content-between align-items-center py-2 small" role="status">
+                        <span>
+                            <strong>The public site is <?= $siteMode === 'maintenance' ? 'under maintenance' : 'set to coming soon' ?>.</strong>
+                            Visitors cannot book or send gifts. You can still use everything.
+                        </span>
+                        <a href="<?= site_url('admin/settings/status') ?>" class="alert-link ms-3 text-nowrap">Change</a>
+                    </div>
+                <?php endif; ?>
                 <?= $this->renderSection('content') ?>
             </div>
         </div>

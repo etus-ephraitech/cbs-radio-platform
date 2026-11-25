@@ -99,6 +99,15 @@ class CbsRadio extends BaseConfig
     public string $announcement  = '';
     public string $liveStreamUrl = '';
 
+    /**
+     * Whether the public site is open: 'live', 'coming_soon' or 'maintenance'. Managed under Admin > Settings >
+     * Site status (see App\Filters\SiteStatus). Anything unrecognised counts as live, so a typo can never lock
+     * visitors out.
+     */
+    public string $siteMode     = 'live';
+    public string $siteMessage  = '';
+    public string $siteReturnAt = '';   // "YYYY-MM-DD HH:MM" in the station's time zone, or empty
+
     // ----- Admin screens -----
     // Rows per page on paginated admin lists (currently the notifications log).
     public int $adminPageSize = 25;
