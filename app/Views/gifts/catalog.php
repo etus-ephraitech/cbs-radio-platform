@@ -15,9 +15,13 @@
     </div>
 <?php endif; ?>
 
-<?php if (empty($gifts)): ?>
+<?php $hostedGifts = $hostedGifts ?? []; $cartCount = $cartCount ?? 0; ?>
+
+<?php if (empty($gifts) && empty($hostedGifts)): ?>
     <div class="alert alert-secondary">No gifts are available right now.</div>
-<?php else: ?>
+<?php endif; ?>
+
+<?php if (! empty($gifts)): ?>
 
 <form action="<?= site_url('gifts') ?>" method="post" id="giftForm">
     <?= csrf_field() ?>
@@ -80,6 +84,65 @@
     <button type="submit" class="btn btn-cbs-primary btn-lg">Continue to payment</button>
 </form>
 
+<?php endif; ?>
+
+<?php if (! empty($hostedGifts)): ?>
+<section class="<?= empty($gifts) ? '' : 'mt-5 ' ?>mb-4" id="shopGifts" aria-labelledby="shopGiftsHeading">
+    <div class="d-flex justify-content-between align-items-end flex-wrap gap-2 mb-3">
+        <div>
+            <h2 class="h4 mb-1" id="shopGiftsHeading">Gifts delivered to their door</h2>
+            <p class="text-muted small mb-0">
+                From our partner shop. Choose as many as you like; you give the delivery address, pick the arrival
+                dates and pay on the shop's secure page.
+            </p>
+        </div>
+        <?php if ($cartCount > 0): ?>
+            <a href="<?= site_url('gifts/cart') ?>" class="btn btn-cbs-primary">View cart (<?= esc($cartCount) ?>)</a>
+        <?php endif; ?>
+    </div>
+
+    <div class="row g-3">
+        <?php foreach ($hostedGifts as $gift): ?>
+            <?php
+            $stock      = $gift['stock_available'];
+            $outOfStock = $stock !== null && (int) $stock === 0;
+            ?>
+            <div class="col-sm-6 col-lg-4">
+                <div class="card h-100 shadow-sm">
+                    <?php if (! empty($gift['image_url'])): ?>
+                        <img src="<?= esc($gift['image_url'], 'attr') ?>" class="card-img-top" alt="<?= esc($gift['name'], 'attr') ?>"
+                             loading="lazy" style="height: 180px; object-fit: cover;">
+                    <?php endif; ?>
+                    <div class="card-body d-flex flex-column">
+                        <h3 class="h6 mb-1"><?= esc($gift['name']) ?></h3>
+                        <div class="fw-bold mb-1"><?= cbs_money((float) $gift['price'], $gift['currency']) ?></div>
+                        <?php if (! empty($gift['description'])): ?>
+                            <p class="text-muted small mb-2"><?= esc(cbs_excerpt($gift['description'], 110)) ?></p>
+                        <?php endif; ?>
+                        <?php if ($gift['minimum_delivery_hours'] !== null): ?>
+                            <div class="text-muted small mb-2">Needs at least <?= esc($gift['minimum_delivery_hours']) ?> hours' notice.</div>
+                        <?php endif; ?>
+
+                        <div class="mt-auto">
+                            <?php if ($outOfStock): ?>
+                                <span class="badge bg-secondary">Out of stock</span>
+                            <?php else: ?>
+                                <form action="<?= site_url('gifts/cart/add') ?>" method="post" class="d-flex gap-2">
+                                    <?= csrf_field() ?>
+                                    <input type="hidden" name="gift_id" value="<?= esc($gift['id'], 'attr') ?>">
+                                    <label class="visually-hidden" for="qty<?= esc($gift['id'], 'attr') ?>">Quantity of <?= esc($gift['name']) ?></label>
+                                    <input type="number" name="quantity" id="qty<?= esc($gift['id'], 'attr') ?>" class="form-control form-control-sm"
+                                           style="max-width: 5rem;" min="1" max="<?= esc($stock !== null ? min((int) $stock, 100) : 100, 'attr') ?>" value="1">
+                                    <button type="submit" class="btn btn-sm btn-cbs-primary flex-grow-1">Add to cart</button>
+                                </form>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        <?php endforeach; ?>
+    </div>
+</section>
 <?php endif; ?>
 
 <?= $this->endSection() ?>

@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-use App\Libraries\VendorGiftClients\GenericRestVendorClient;
+use App\Libraries\VendorGiftClients\VendorClients;
 use App\Libraries\VendorGiftClients\VendorGiftClientInterface;
 use App\Models\GiftModel;
 use App\Models\GiftOrderModel;
@@ -52,6 +52,13 @@ class GiftOrderService
 
         if ($gift === null || (int) $gift['is_active'] !== 1) {
             return ['success' => false, 'message' => 'Selected gift is not available.', 'giftOrder' => null, 'errors' => []];
+        }
+
+        // A gift from a vendor with its own checkout is paid on the vendor's site, never through ours: it goes in
+        // the gift cart (see HostedCheckoutService). Refused here so that no one can pay us for it by a hand-made request.
+        if ($gift['source'] === GiftModel::SOURCE_VENDOR && ! empty($gift['vendor_id'])
+            && GiftVendorModel::isHosted($this->giftVendorModel->find($gift['vendor_id']))) {
+            return ['success' => false, 'message' => 'This gift is bought through the gift cart.', 'giftOrder' => null, 'errors' => []];
         }
 
         $quantity = max((int) ($input['quantity'] ?? 1), 1);
@@ -154,7 +161,7 @@ class GiftOrderService
      */
     protected function vendorClient(array $vendor): VendorGiftClientInterface
     {
-        return new GenericRestVendorClient($vendor);
+        return VendorClients::for($vendor);
     }
 
     /**

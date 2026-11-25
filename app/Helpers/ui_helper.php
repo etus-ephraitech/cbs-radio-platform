@@ -67,6 +67,65 @@ if (! function_exists('cbs_gift_order_status_badge')) {
     }
 }
 
+if (! function_exists('cbs_checkout_state_label')) {
+    /**
+     * What a visitor is told about a hosted checkout (vendor_checkouts.state), in plain words.
+     */
+    function cbs_checkout_state_label(string $state): string
+    {
+        return [
+            'draft'            => 'Starting',
+            'open'             => 'Waiting for you at checkout',
+            'in_checkout'      => 'Checkout in progress',
+            'awaiting_payment' => 'Waiting for payment',
+            'paid'             => 'Payment received',
+            'cancelled'        => 'Cancelled',
+            'expired'          => 'Expired',
+            'failed'           => 'Could not be started',
+        ][$state] ?? ucfirst(str_replace('_', ' ', $state));
+    }
+}
+
+if (! function_exists('cbs_checkout_state_badge')) {
+    /**
+     * Bootstrap 5 badge for a vendor_checkouts.state value.
+     * States must match the ENUM in CreateVendorCheckoutsTable exactly.
+     */
+    function cbs_checkout_state_badge(string $state): string
+    {
+        $classes = [
+            'draft'            => 'bg-secondary',
+            'open'             => 'bg-secondary',
+            'in_checkout'      => 'bg-info text-dark',
+            'awaiting_payment' => 'bg-warning text-dark',
+            'paid'             => 'bg-success',
+            'cancelled'        => 'bg-dark',
+            'expired'          => 'bg-secondary',
+            'failed'           => 'bg-danger',
+        ];
+
+        return '<span class="badge ' . ($classes[$state] ?? 'bg-secondary') . '">' . esc(cbs_checkout_state_label($state)) . '</span>';
+    }
+}
+
+if (! function_exists('cbs_delivery_state_label')) {
+    /**
+     * A gift's delivery progress as the vendor reports it (an order's deliveries[].state).
+     */
+    function cbs_delivery_state_label(string $state): string
+    {
+        return [
+            'pending'           => 'Waiting to be prepared',
+            'preparing'         => 'Being prepared',
+            'ready'             => 'Ready',
+            'on_the_way'        => 'On the way',
+            'delivery_reported' => 'Delivery reported',
+            'delivered'         => 'Delivered',
+            'cancelled'         => 'Cancelled',
+        ][$state] ?? ucfirst(str_replace('_', ' ', $state));
+    }
+}
+
 if (! function_exists('cbs_notification_status_badge')) {
     /**
      * Bootstrap 5 badge for a notifications_log.status value.

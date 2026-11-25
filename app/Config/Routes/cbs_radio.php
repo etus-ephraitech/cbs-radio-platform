@@ -62,6 +62,14 @@ $routes->group('booking', ['filter' => SiteStatus::class], static function ($rou
 $routes->group('gifts', ['filter' => SiteStatus::class], static function ($routes) {
     $routes->get('/', 'GiftOrderController::index');
     $routes->post('/', 'GiftOrderController::store');
+    // The gift cart and hosted checkout (partner shop gifts, paid on the shop's own page). Declared before the
+    // numeric routes below; none of these paths can match (:num).
+    $routes->get('cart', 'GiftCartController::show');
+    $routes->post('cart/add', 'GiftCartController::add');
+    $routes->post('cart/update', 'GiftCartController::update');
+    $routes->post('cart/remove/(:num)', 'GiftCartController::remove/$1');
+    $routes->post('checkout', 'GiftCartController::checkout');
+    $routes->get('checkout/(:segment)', 'GiftCartController::purchase/$1');
     $routes->get('(:num)/pay', 'GiftOrderController::pay/$1');
     $routes->get('(:num)/confirmation', 'GiftOrderController::confirmation/$1');
 });
@@ -125,6 +133,14 @@ $routes->group('admin', ['filter' => 'auth:session'], static function ($routes) 
     $routes->group('payments', static function ($routes) {
         $routes->get('/', 'Admin\PaymentController::index');
         $routes->post('(:num)/mark-manual', 'Admin\PaymentController::markManual/$1');
+    });
+
+    // What visitors bought through a partner shop's hosted checkout (they pay the shop, so this is read-only
+    // apart from asking the shop again).
+    $routes->group('gift-purchases', static function ($routes) {
+        $routes->get('/', 'Admin\GiftPurchaseController::index');
+        $routes->get('(:num)', 'Admin\GiftPurchaseController::show/$1');
+        $routes->post('(:num)/refresh', 'Admin\GiftPurchaseController::refresh/$1');
     });
 
     $routes->group('gift-orders', static function ($routes) {

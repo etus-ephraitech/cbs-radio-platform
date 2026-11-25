@@ -22,9 +22,15 @@ class GiftVendorModel extends Model
     protected $returnType       = 'array';
     protected $useSoftDeletes   = false;
 
+    /** Pays the vendor's own checkout, never ours: gifts from these vendors are bought through the gift cart. */
+    public const DRIVER_GENERIC = 'generic';
+    public const DRIVER_KATALE  = 'katale';
+    public const HOSTED_DRIVERS = [self::DRIVER_KATALE];
+
     protected $allowedFields = [
         'name',
         'slug',
+        'driver',
         'api_base_url',
         'is_active',
     ];
@@ -39,11 +45,22 @@ class GiftVendorModel extends Model
         'id'          => 'permit_empty|is_natural_no_zero',
         'name'         => 'required|max_length[150]',
         'slug'         => 'required|max_length[100]|is_unique[gift_vendors.slug,id,{id}]',
+        'driver'       => 'permit_empty|in_list[generic,katale]',
         'api_base_url' => 'permit_empty|valid_url',
         'is_active'    => 'permit_empty|in_list[0,1]',
     ];
     protected $validationMessages = [];
     protected $skipValidation     = false;
+
+    /**
+     * True when customers pay this vendor's own hosted checkout rather than paying us.
+     *
+     * @param array<string, mixed>|null $vendor
+     */
+    public static function isHosted(?array $vendor): bool
+    {
+        return $vendor !== null && in_array($vendor['driver'] ?? self::DRIVER_GENERIC, self::HOSTED_DRIVERS, true);
+    }
 
     public function active(): array
     {

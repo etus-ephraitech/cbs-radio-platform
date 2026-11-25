@@ -36,7 +36,7 @@ class GiftVendorController extends BaseAdminController
 
     public function store()
     {
-        if (! $this->validate(['name' => 'required|max_length[150]', 'api_base_url' => 'permit_empty|valid_url'])) {
+        if (! $this->validate(['name' => 'required|max_length[150]', 'driver' => 'permit_empty|in_list[generic,katale]', 'api_base_url' => 'permit_empty|valid_url'])) {
             return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
         }
 
@@ -45,6 +45,7 @@ class GiftVendorController extends BaseAdminController
         $id = $this->giftVendorModel->insert([
             'name'         => $name,
             'slug'         => $this->giftVendorModel->generateUniqueSlug($name),
+            'driver'       => $this->request->getPost('driver') ?: 'generic',
             'api_base_url' => $this->request->getPost('api_base_url'),
             'is_active'    => $this->request->getPost('is_active') ? 1 : 0,
         ]);
@@ -80,7 +81,7 @@ class GiftVendorController extends BaseAdminController
             return redirect()->to(site_url('admin/gift-vendors'))->with('toastr_error', 'Vendor not found.');
         }
 
-        if (! $this->validate(['name' => 'required|max_length[150]', 'api_base_url' => 'permit_empty|valid_url'])) {
+        if (! $this->validate(['name' => 'required|max_length[150]', 'driver' => 'permit_empty|in_list[generic,katale]', 'api_base_url' => 'permit_empty|valid_url'])) {
             return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
         }
 
@@ -90,6 +91,7 @@ class GiftVendorController extends BaseAdminController
         $ok = $this->giftVendorModel->update($id, [
             'name'         => $name,
             'slug'         => $slug,
+            'driver'       => $this->request->getPost('driver') ?: $vendor['driver'], // a form that sends none leaves it as it was
             'api_base_url' => $this->request->getPost('api_base_url'),
             'is_active'    => $this->request->getPost('is_active') ? 1 : 0,
         ]);

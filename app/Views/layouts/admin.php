@@ -211,6 +211,7 @@ $isActive = static function (string $segment) use ($currentPath): string {
                 <a class="nav-link <?= $isActive('moderation') ?>" href="<?= site_url('admin/moderation') ?>">Moderation Queue</a>
                 <a class="nav-link <?= $isActive('payments') ?>" href="<?= site_url('admin/payments') ?>">Payments</a>
                 <a class="nav-link <?= $isActive('gift-orders') ?>" href="<?= site_url('admin/gift-orders') ?>">Gift Orders</a>
+                <a class="nav-link <?= $isActive('gift-purchases') ?>" href="<?= site_url('admin/gift-purchases') ?>">Shop Purchases</a>
                 <a class="nav-link <?= $isActive('notifications') ?>" href="<?= site_url('admin/notifications') ?>">Notifications</a>
 
                 <div class="nav-group-label">Catalog</div>

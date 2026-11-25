@@ -22,8 +22,12 @@ interface VendorGiftClientInterface
      *     description: ?string,
      *     price: float,
      *     currency: string,
-     *     type: string
-     * }>
+     *     type: string,
+     *     image_url?: ?string,
+     *     minimum_delivery_hours?: ?int,
+     *     stock?: int
+     * }>  The last three are optional: a vendor that reports them has them stored on the gift (see
+     *     GiftVendorSyncService), one that does not simply leaves them out.
      */
     public function fetchCatalog(): array;
 

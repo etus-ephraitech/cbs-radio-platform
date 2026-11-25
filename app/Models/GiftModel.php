@@ -26,6 +26,9 @@ class GiftModel extends Model
         'vendor_id',
         'vendor_product_ref',
         'synced_at',
+        'image_url',
+        'minimum_delivery_hours',
+        'stock_available',
     ];
 
     protected $useTimestamps = true;
@@ -42,6 +45,9 @@ class GiftModel extends Model
         'source'             => 'permit_empty|in_list[local,vendor]',
         'vendor_id'          => 'permit_empty|is_natural_no_zero',
         'vendor_product_ref' => 'permit_empty|max_length[150]',
+        'image_url'              => 'permit_empty|max_length[500]',
+        'minimum_delivery_hours' => 'permit_empty|is_natural',
+        'stock_available'        => 'permit_empty|is_natural',
     ];
     protected $validationMessages = [];
     protected $skipValidation     = false;
@@ -54,11 +60,45 @@ class GiftModel extends Model
      */
     public function active(): array
     {
-        return $this->select('gifts.*, gift_vendors.name AS vendor_name')
+        return $this->select('gifts.*, gift_vendors.name AS vendor_name, gift_vendors.driver AS vendor_driver')
             ->join('gift_vendors', 'gift_vendors.id = gifts.vendor_id', 'left')
             ->where('gifts.is_active', 1)
             ->orderBy('gifts.name', 'ASC')
             ->findAll();
+    }
+
+    /**
+     * The active gifts that are bought through a vendor's hosted checkout (the gift cart), by id.
+     * A gift whose vendor is switched off, or that is not from a hosted vendor, is not returned.
+     *
+     * @param array<int, int|string> $ids
+     *
+     * @return array<int, array<string, mixed>> keyed by gift id
+     */
+    public function hostedByIds(array $ids): array
+    {
+        $ids = array_values(array_unique(array_filter(array_map('intval', $ids), static fn (int $id): bool => $id > 0)));
+
+        if ($ids === []) {
+            return [];
+        }
+
+        $rows = $this->select('gifts.*, gift_vendors.name AS vendor_name, gift_vendors.driver AS vendor_driver')
+            ->join('gift_vendors', 'gift_vendors.id = gifts.vendor_id')
+            ->whereIn('gifts.id', $ids)
+            ->where('gifts.is_active', 1)
+            ->where('gifts.source', self::SOURCE_VENDOR)
+            ->where('gift_vendors.is_active', 1)
+            ->whereIn('gift_vendors.driver', GiftVendorModel::HOSTED_DRIVERS)
+            ->findAll();
+
+        $byId = [];
+
+        foreach ($rows as $row) {
+            $byId[(int) $row['id']] = $row;
+        }
+
+        return $byId;
     }
 
     public function byType(string $type): array
