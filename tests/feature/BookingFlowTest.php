@@ -604,4 +604,12 @@ final class BookingFlowTest extends AppFeatureTestCase
         $this->assertSame(1, $this->bookingCount());
         $this->assertNotNull($this->latestBooking()['show_slot_id']);
     }
+
+    public function testTheMessageBoxOffersQuickAdditionsForTheirNameAndASignOff(): void
+    {
+        $body = $this->get('booking/birthdays')->getBody();
+
+        $this->assertStringContainsString('id="addName"', $body);
+        $this->assertStringContainsString('id="addSignoff"', $body);
+    }
 }

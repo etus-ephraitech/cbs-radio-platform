@@ -40,3 +40,18 @@ provider, and a from/to date range) and, apart from Gifts, the same paging, at "
 Admin > Settings. A filtered list can be bookmarked or shared. Everything in the query string is checked by
 `App\Libraries\AdminFilters` (choices must be on the list, dates must exist, text is capped), so an unknown value
 shows the whole list rather than an error. Bookings and the notifications log already had their own filters.
+
+## Message editors
+
+**Packages and voice notes.** Admin > Packages has an "Includes a voice note" switch per package. The booking form
+shows the voice recorder only after a visitor chooses a package that has it (and drops anything recorded if they
+switch to one that does not); a recording sent with another package is refused by the server. The migration turns
+the switch on for packages that already mention a voice note in their name or description, so nothing already sold
+changes; tick it for any other package that should have one.
+
+**Template editor.** Admin > Message templates has buttons that insert `{recipient}` and `{sender}` at the cursor, a
+live count against the booking form's limit, a warning for unknown placeholders, and a preview with sample names and
+the on-air time.
+
+**Visitor's message box.** "Their name" and "A sign-off with my name" add text at the cursor, using the names typed
+so far or the same `[their name]` / `[your name]` markers the examples use. Undo covers them.

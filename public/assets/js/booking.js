@@ -139,6 +139,46 @@
             message.focus();
         });
 
+        // Quick additions at the cursor: the recipient's name, and a sign-off with the sender's. Each uses the
+        // name typed so far, or the same [marker] the examples leave, which the form already asks them to replace.
+        function insertAtCursor(text) {
+            var value = message.value;
+            var start = typeof message.selectionStart === 'number' ? message.selectionStart : value.length;
+            var end   = typeof message.selectionEnd === 'number' ? message.selectionEnd : value.length;
+            var next  = value.slice(0, start) + text + value.slice(end);
+            undoValue = value;
+            message.value = next;
+            message.focus();
+            try { message.setSelectionRange(start + text.length, start + text.length); } catch (e) { /* not supported */ }
+            show(undoBtn, true);
+            update();
+            drafts.save();
+            return true;
+        }
+        var addName = $('addName'), addSignoff = $('addSignoff');
+        if (addName) {
+            addName.addEventListener('click', function () {
+                var name = recipient && recipient.value.trim();
+                insertAtCursor(name || '[their name]');
+                announce(name ? 'Added ' + name + '.' : 'Added a marker to replace with their name.');
+            });
+        }
+        if (addSignoff) {
+            addSignoff.addEventListener('click', function () {
+                var name = sender && sender.value.trim();
+                var line = 'From ' + (name || '[your name]');
+                var text = message.value.replace(/\s+$/, '');
+                if (normalise(text).toLowerCase().indexOf(line.toLowerCase()) !== -1) { announce('Your message already has that sign-off.'); message.focus(); return; }
+                undoValue = message.value;
+                message.value = (text === '' ? '' : text + '\n\n') + line;
+                show(undoBtn, true);
+                message.focus();
+                update();
+                drafts.save();
+                announce(name ? 'Added a sign-off from ' + name + '.' : 'Added a sign-off with a marker to replace with your name.');
+            });
+        }
+
         // Names typed *after* an example was chosen fill the markers the example left.
         function fillMarker(field, marker) {
             if (!field) { return; }

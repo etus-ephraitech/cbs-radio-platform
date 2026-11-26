@@ -131,6 +131,12 @@ $exts = implode(',', $config->voiceNoteAllowedExtensions);
                     </div>
 
                     <label class="form-label" for="messageText">What would you like us to say?</label>
+                        <div class="bk-quick" role="group" aria-label="Add to your message">
+                            <span class="bk-label" style="margin:0">Add:</span>
+                            <button type="button" class="bk-chip" id="addName">Their name</button>
+                            <button type="button" class="bk-chip" id="addSignoff">A sign-off with my name</button>
+                        </div>
+
                     <textarea name="message_text" id="messageText" class="form-control" rows="5" required
                         aria-describedby="messageStatus messageError"><?= old('message_text') ?></textarea>
 

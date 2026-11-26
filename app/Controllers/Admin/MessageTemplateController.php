@@ -107,6 +107,7 @@ class MessageTemplateController extends BaseAdminController
             'languages'  => $this->templateModel->languages(),
             'maxLength'  => config('CbsRadio')->messageMaxLength,
             'tokens'     => MessageTemplateModel::TOKENS,
+            'wordsPerMinute' => config('CbsRadio')->readingWordsPerMinute,
         ];
     }
 
