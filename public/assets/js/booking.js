@@ -290,7 +290,7 @@
 
     var voice = (function () {
         var root = $('voice');
-        if (!root) { return { isBusy: function () { return false; }, focusStop: function () {} }; }
+        if (!root) { return { isBusy: function () { return false; }, focusStop: function () {}, setAvailable: function () {}, say: function () {}, fail: function () {} }; }
 
         var el = {
             idle: $('voiceIdle'), rec: $('voiceRec'), ready: $('voiceReady'),
@@ -379,7 +379,7 @@
             announce('Voice note ready' + (secs === null ? '' : ', ' + readableDuration(secs)) + '. You can play it, record again, or remove it.');
         }
 
-        function removeNote() {
+        function removeNote(quiet) {
             try { el.input.value = ''; } catch (e) { /* older browsers */ }
             if (el.input.files && el.input.files.length) { el.input.files = new DataTransfer().files; }
             el.duration.value = '';
@@ -388,7 +388,20 @@
             el.player.load();
             reset();
             setState('idle');
-            (canRecord ? el.recBtn : el.pickBtn).focus();
+            if (quiet !== true) { (canRecord ? el.recBtn : el.pickBtn).focus(); }
+        }
+
+        // Whether the chosen package includes a voice note. Without one the whole section is hidden, anything
+        // recorded or chosen is dropped, and the file input is disabled so nothing can be sent with the booking.
+        function setAvailable(on) {
+            if (!on) {
+                if (state === 'recording') { why = 'discard'; stopNow(); }
+                if (state === 'ready') { removeNote(true); }
+                releaseStream();
+            }
+            show(root, on);
+            el.input.disabled = !on;
+            if (!on) { el.duration.value = ''; }
         }
 
         /* ---- recording ---- */
@@ -622,7 +635,7 @@
         el.stopBtn.addEventListener('click', function () { why = 'user'; stopNow(); });
         el.pickBtn.addEventListener('click', function () { el.input.click(); });
         el.input.addEventListener('change', onPick);
-        el.remove.addEventListener('click', removeNote);
+        el.remove.addEventListener('click', function () { removeNote(); });
         el.again.addEventListener('click', function () { removeNote(); if (canRecord) { start(); } });
 
         window.addEventListener('pagehide', function () {
@@ -633,8 +646,22 @@
         return {
             isBusy: function () { return state === 'recording' || waiting; },
             focusStop: function () { (state === 'recording' ? el.stopBtn : el.recBtn).focus(); },
-            say: say, fail: fail
+            say: say, fail: fail, setAvailable: setAvailable
         };
+    })();
+
+    /* The recorder belongs to packages that include a voice note: show it for those, hide it for the rest. */
+    (function voiceByPackage() {
+        var radios = form.querySelectorAll('input[name="rate_tier_id"]');
+        var notIncluded = $('voiceNotIncluded');
+        function sync() {
+            var chosen = form.querySelector('input[name="rate_tier_id"]:checked');
+            var on = !!chosen && chosen.getAttribute('data-voice') === '1';
+            voice.setAvailable(on);
+            show(notIncluded, !!chosen && !on);
+        }
+        radios.forEach(function (r) { r.addEventListener('change', sync); });
+        sync();
     })();
 
     /* ================================================================== 3. FORM CHECKS */

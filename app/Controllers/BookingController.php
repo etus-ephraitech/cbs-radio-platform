@@ -130,6 +130,16 @@ class BookingController extends BaseController
 
         $voiceNote = $this->request->getFile('voice_note');
 
+        // The recorder is only offered with a package that includes a voice note, so refuse one sent with another
+        // rather than accept audio nobody paid for (and that staff would then have to deal with).
+        if ($voiceNote !== null && $voiceNote->getError() !== UPLOAD_ERR_NO_FILE) {
+            $tier = (new \App\Models\RateTierModel())->find((int) $input['rate_tier_id']);
+
+            if ($tier !== null && (int) ($tier['includes_voice_note'] ?? 0) !== 1) {
+                return redirect()->back()->withInput()->with('toastr_error', 'The ' . $tier['package_level'] . ' package does not include a voice note. Choose a package with a voice note, or remove the recording.');
+            }
+        }
+
         // "No file chosen" is fine. Anything else — including an upload PHP itself
         // rejected, such as one over the server's size limit — is checked and
         // reported, rather than being quietly dropped and the booking made without it.

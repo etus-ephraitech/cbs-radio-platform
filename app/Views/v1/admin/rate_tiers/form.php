@@ -70,6 +70,13 @@
                     </div>
                     <div class="form-text mb-3">Set per package, so it is always clear whether a package is read out on air.</div>
 
+                    <div class="form-check form-switch mb-1">
+                        <input type="checkbox" role="switch" name="includes_voice_note" value="1" class="form-check-input" id="includesVoiceNote"
+                               <?= (old('includes_voice_note') ?? $rateTier['includes_voice_note'] ?? 0) ? 'checked' : '' ?>>
+                        <label class="form-check-label" for="includesVoiceNote">Includes a voice note</label>
+                    </div>
+                    <div class="form-text mb-3">The booking form shows the voice recorder only to people who choose a package with this on.</div>
+
                     <div class="form-check form-switch">
                         <input type="checkbox" role="switch" name="is_active" value="1" class="form-check-input" id="isActive"
                                <?= (old('is_active') ?? $rateTier['is_active'] ?? 1) ? 'checked' : '' ?>>

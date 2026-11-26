@@ -61,6 +61,7 @@ $exts = implode(',', $config->voiceNoteAllowedExtensions);
                                 <span class="bk-pkg-row">
                                     <span>
                                         <input type="radio" name="rate_tier_id" value="<?= esc($tier['id']) ?>" required class="form-check-input me-2"
+                                            data-voice="<?= (int) ($tier['includes_voice_note'] ?? 0) === 1 ? '1' : '0' ?>"
                                             <?= (string) old('rate_tier_id') === (string) $tier['id'] ? 'checked' : '' ?>>
                                         <span class="bk-pkg-name"><?= esc($tier['package_level']) ?></span>
                                     </span>
@@ -151,6 +152,10 @@ $exts = implode(',', $config->voiceNoteAllowedExtensions);
                 </div>
 
                 <hr class="my-4">
+
+                <p class="bk-help" id="voiceNotIncluded" hidden>
+                    Your package is read out as text. Go back and choose a package with a voice note if you would like to add your own voice.
+                </p>
 
                 <fieldset class="bk-voice" id="voice" aria-describedby="voiceHelp">
                     <legend>Add your voice <span class="bk-optional">(optional)</span></legend>

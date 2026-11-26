@@ -55,6 +55,13 @@
             <div class="form-text">Set explicitly per package — this replaces the "is the Milestone tier on-air or not" ambiguity from the original proposal.</div>
         </div>
 
+        <div class="form-check mb-3">
+            <input type="checkbox" name="includes_voice_note" value="1" class="form-check-input" id="includesVoiceNote"
+                   <?= (old('includes_voice_note') ?? $rateTier['includes_voice_note'] ?? 0) ? 'checked' : '' ?>>
+            <label class="form-check-label" for="includesVoiceNote">Includes a voice note</label>
+            <div class="form-text">The booking form shows the voice recorder only to people who choose a package with this on.</div>
+        </div>
+
         <div class="row g-3 mb-3">
             <div class="col-md-8">
                 <label class="form-label">Price</label>

@@ -51,6 +51,7 @@ trait BuildsCatalog
             'package_level'   => "Package {$n}",
             'features'        => "Features of package {$n}",
             'includes_on_air' => 1,
+            'includes_voice_note' => 1,
             'price'           => 15000,
             'currency'        => 'UGX',
             'is_active'       => 1,
