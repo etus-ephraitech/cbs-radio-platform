@@ -126,6 +126,24 @@ if (! function_exists('cbs_delivery_state_label')) {
     }
 }
 
+if (! function_exists('cbs_is_superadmin')) {
+    /**
+     * Whether the signed-in person is a superadmin, for menus that show a link only to them. The route filter
+     * (`role:superadmin`) is what actually protects a page; this only decides whether to offer the link. Anything
+     * that goes wrong (no one signed in, the auth tables missing) means "no".
+     */
+    function cbs_is_superadmin(): bool
+    {
+        try {
+            helper('auth');
+
+            return function_exists('has_role') && has_role('superadmin');
+        } catch (\Throwable) {
+            return false;
+        }
+    }
+}
+
 if (! function_exists('cbs_notification_status_badge')) {
     /**
      * Bootstrap 5 badge for a notifications_log.status value.

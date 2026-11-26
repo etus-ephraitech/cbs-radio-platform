@@ -135,6 +135,19 @@ $routes->group('admin', ['filter' => 'auth:session'], static function ($routes) 
         $routes->post('(:num)/mark-manual', 'Admin\PaymentController::markManual/$1');
     });
 
+    // Who can sign in, and as what. Superadmin only: the package's `role` filter refuses everyone else (403 or a
+    // redirect, as it decides), so an administrator cannot reach these pages by typing the address.
+    $routes->group('users', ['filter' => 'role:superadmin'], static function ($routes) {
+        $routes->get('/', 'Admin\UserController::index');
+        $routes->get('create', 'Admin\UserController::create');
+        $routes->post('/', 'Admin\UserController::store');
+        $routes->get('(:num)', 'Admin\UserController::show/$1');
+        $routes->post('(:num)/roles', 'Admin\UserController::updateRoles/$1');
+        $routes->post('(:num)/status', 'Admin\UserController::updateStatus/$1');
+        $routes->post('(:num)/reset-password', 'Admin\UserController::resetPassword/$1');
+        $routes->post('(:num)/delete', 'Admin\UserController::destroy/$1');
+    });
+
     // What visitors bought through a partner shop's hosted checkout (they pay the shop, so this is read-only
     // apart from asking the shop again).
     $routes->group('gift-purchases', static function ($routes) {

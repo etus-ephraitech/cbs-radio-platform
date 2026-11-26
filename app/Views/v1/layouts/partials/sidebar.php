@@ -39,6 +39,11 @@ $menu = [
     ['link' => 'admin/settings', 'label' => 'Settings', 'icon' => 'settings'],
 ];
 
+// Pages only a superadmin may open (the routes enforce it; this only decides whether to show the link).
+if (cbs_is_superadmin()) {
+    $menu[] = ['link' => 'admin/users', 'label' => 'Users', 'icon' => 'presenter'];
+}
+
 $logo = static fn (string $file): string => esc(base_url('assets/images/brand-logos/' . $file), 'attr');
 ?>
 <svg
