@@ -12,3 +12,13 @@ menu link, and the routes carry the auth package's `role:superadmin` filter, so 
   active superadmin cannot be demoted, suspended or deleted.
 - The first superadmin is made on the command line:
   `php spark auth:user:create --role=superadmin --generate`.
+
+## Logo
+
+Admin > Logo (superadmin only, same `role:superadmin` filter as Users) uploads the station logo and the
+browser-tab icon. PNG, JPG or WebP for the logo (up to 1 MB), PNG or ICO for the icon (up to 256 KB). SVG is
+refused on purpose: it can carry script and the files are public. Files are written to `public/uploads/branding/`
+under generated names (the folder must be writable by PHP) and their paths are saved as settings, so
+`config('CbsRadio')->logoPath` is what views read, through `cbs_brand()`. With nothing uploaded, or if a file goes
+missing, every page shows the built-in CBS Radio name and lamp. The logo appears in the public header and footer,
+both admin shells and the sign-in page. Replacing or removing a file deletes the old one.

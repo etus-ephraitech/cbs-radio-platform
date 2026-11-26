@@ -23,7 +23,9 @@ $cbs     = config('CbsRadio');
     <meta name="robots" content="noindex, nofollow">
     <meta name="theme-color" content="#0E1B3D">
     <title><?= esc(($pageTitle ?? 'Account') . ' · ' . $appName . ' staff') ?></title>
-    <link rel="icon" href="<?= esc(base_url('assets/images/brand-logos/toggle-logo.svg'), 'attr') ?>" type="image/svg+xml">
+    <?php $brand = cbs_brand(); ?>
+    <?php if ($brand['favicon'] !== ''): ?><link rel="icon" href="<?= esc($brand['favicon'], 'attr') ?>">
+    <?php else: ?><link rel="icon" href="<?= esc(base_url('assets/images/brand-logos/toggle-logo.svg'), 'attr') ?>" type="image/svg+xml"><?php endif; ?>
     <link rel="stylesheet" href="<?= esc($asset('assets/css/auth.css'), 'attr') ?>">
 </head>
 
@@ -34,8 +36,12 @@ $cbs     = config('CbsRadio');
     <div class="au">
         <aside class="au-brand" aria-label="<?= esc($appName, 'attr') ?>">
             <a class="au-logo" href="<?= site_url('/') ?>">
-                <img src="<?= esc(base_url('assets/images/brand-logos/toggle-dark.svg'), 'attr') ?>" alt="" width="40" height="40">
-                <?= esc($appName) ?> <span>STAFF</span>
+                <?php if ($brand['logo'] !== ''): ?>
+                    <img src="<?= esc($brand['logo'], 'attr') ?>" alt="<?= esc($brand['alt'], 'attr') ?>" style="height:40px;width:auto;max-width:200px;background:#fff;border-radius:8px;padding:4px 8px"> <span>STAFF</span>
+                <?php else: ?>
+                    <img src="<?= esc(base_url('assets/images/brand-logos/toggle-dark.svg'), 'attr') ?>" alt="" width="40" height="40">
+                    <?= esc($appName) ?> <span>STAFF</span>
+                <?php endif; ?>
             </a>
 
             <div class="au-pitch">

@@ -33,6 +33,12 @@ final class Registry
         'bookings'      => 'Bookings & content',
     ];
 
+    /**
+     * Groups whose settings are managed on their own superadmin-only page rather than as a tab here (see
+     * BrandingService). They are saved and applied like any other setting; they just have no tab.
+     */
+    public const OWN_PAGE_GROUPS = ['branding'];
+
     private const TEMPLATE_EVENTS = [
         'booking_confirmation' => 'Greeting received',
         'moderation_approved'  => 'Greeting approved',
@@ -374,6 +380,28 @@ final class Registry
                 'help'  => 'One per line. A match only flags the booking for a moderator — it never blocks or rejects anything.',
                 'target' => ['CbsRadio', 'moderationFlagTerms'],
             ],
+        ];
+
+        // ------------------------------------------------------------ branding
+        // Not a tab on the settings screen (it is not in GROUPS): files are uploaded on Admin > Logo, which is
+        // superadmin-only, and the stored value is the path of the uploaded file under public/.
+        $defs['branding.logoPath'] = [
+            'group' => 'branding', 'type' => 'string', 'maxLength' => 255,
+            'label' => 'Logo file',
+            'help'  => '',
+            'target' => ['CbsRadio', 'logoPath'],
+        ];
+        $defs['branding.faviconPath'] = [
+            'group' => 'branding', 'type' => 'string', 'maxLength' => 255,
+            'label' => 'Browser tab icon file',
+            'help'  => '',
+            'target' => ['CbsRadio', 'faviconPath'],
+        ];
+        $defs['branding.logoAlt'] = [
+            'group' => 'branding', 'type' => 'string', 'maxLength' => 80,
+            'label' => 'Logo description',
+            'help'  => '',
+            'target' => ['CbsRadio', 'logoAlt'],
         ];
 
         // ------------------------------------------------------------ templates

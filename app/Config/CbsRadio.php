@@ -99,6 +99,12 @@ class CbsRadio extends BaseConfig
     public string $announcement  = '';
     public string $liveStreamUrl = '';
 
+    // ----- Branding -----
+    // Paths relative to public/, set on Admin > Logo (superadmin only). Empty means the built-in brand.
+    public string $logoPath    = '';
+    public string $faviconPath = '';
+    public string $logoAlt     = 'CBS Radio';
+
     /**
      * Whether the public site is open: 'live', 'coming_soon' or 'maintenance'. Managed under Admin > Settings >
      * Site status (see App\Filters\SiteStatus). Anything unrecognised counts as live, so a typo can never lock

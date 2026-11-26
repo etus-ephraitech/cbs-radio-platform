@@ -144,6 +144,32 @@ if (! function_exists('cbs_is_superadmin')) {
     }
 }
 
+if (! function_exists('cbs_brand')) {
+    /**
+     * The uploaded logo and tab icon (Admin > Logo), as public URLs. An empty string means "use the built-in
+     * one", which is also what you get when the file has gone missing from disk. Read per request, so a change
+     * shows at once.
+     *
+     * @return array{logo: string, favicon: string, alt: string}
+     */
+    function cbs_brand(): array
+    {
+        static $brand = null;
+
+        if ($brand !== null && ENVIRONMENT !== 'testing') {
+            return $brand;
+        }
+
+        $cbs = config('CbsRadio');
+
+        return $brand = [
+            'logo'    => \App\Services\BrandingService::url($cbs->logoPath),
+            'favicon' => \App\Services\BrandingService::url($cbs->faviconPath),
+            'alt'     => $cbs->logoAlt !== '' ? $cbs->logoAlt : 'CBS Radio',
+        ];
+    }
+}
+
 if (! function_exists('cbs_notification_status_badge')) {
     /**
      * Bootstrap 5 badge for a notifications_log.status value.

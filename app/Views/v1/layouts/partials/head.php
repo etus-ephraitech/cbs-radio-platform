@@ -24,7 +24,9 @@ $asset = static fn (string $path): string => esc(base_url('assets/' . ltrim($pat
     <?= csrf_meta() ?>
     <title><?= esc($documentTitle) ?></title>
 
-    <link rel="icon" href="<?= $asset('images/brand-logos/toggle-logo.svg') ?>" type="image/svg+xml">
+    <?php $brandFav = cbs_brand()['favicon']; ?>
+    <?php if ($brandFav !== ''): ?><link rel="icon" href="<?= esc($brandFav, 'attr') ?>">
+    <?php else: ?><link rel="icon" href="<?= $asset('images/brand-logos/toggle-logo.svg') ?>" type="image/svg+xml"><?php endif; ?>
 
     <script>window.CBS_ASSETS = <?= json_encode(base_url('assets/'), JSON_UNESCAPED_SLASHES | JSON_HEX_TAG) ?>;</script>
     <script src="<?= $asset('libs/choices.js/public/assets/scripts/choices.min.js') ?>"></script>

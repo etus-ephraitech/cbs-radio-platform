@@ -148,6 +148,14 @@ $routes->group('admin', ['filter' => 'auth:session'], static function ($routes) 
         $routes->post('(:num)/delete', 'Admin\UserController::destroy/$1');
     });
 
+    // Logo and browser-tab icon. Superadmin only, like Users.
+    $routes->group('branding', ['filter' => 'role:superadmin'], static function ($routes) {
+        $routes->get('/', 'Admin\BrandingController::index');
+        $routes->post('upload/(:segment)', 'Admin\BrandingController::upload/$1');
+        $routes->post('remove/(:segment)', 'Admin\BrandingController::remove/$1');
+        $routes->post('alt', 'Admin\BrandingController::saveAlt');
+    });
+
     // What visitors bought through a partner shop's hosted checkout (they pay the shop, so this is read-only
     // apart from asking the shop again).
     $routes->group('gift-purchases', static function ($routes) {

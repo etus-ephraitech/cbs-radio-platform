@@ -21,7 +21,8 @@ $staffName  = $staff?->getUsername() ?: ($staff?->getEmail() ?: 'Staff');
 $staffEmail = $staff?->getEmail() ?? '';
 $initials   = strtoupper(mb_substr(preg_replace('/[^\p{L}\p{N}]/u', '', $staffName) ?: 'S', 0, 2));
 $search     = (string) (service('request')->getGet('q') ?? '');
-$logo       = static fn (string $file): string => esc(base_url('assets/images/brand-logos/' . $file), 'attr');
+$uploadedLogo = cbs_brand()['logo']; // Admin > Logo; empty means the theme's own files
+$logo       = static fn (string $file): string => $uploadedLogo !== '' ? esc($uploadedLogo, 'attr') : esc(base_url('assets/images/brand-logos/' . $file), 'attr');
 $icon       = static fn (string $path): string => '<svg xmlns="http://www.w3.org/2000/svg" class="header-link-icon" width="1em" height="1em" viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="' . $path . '"/></svg>';
 ?>
 <header class="app-header sticky" id="header">

@@ -28,6 +28,10 @@ $noindex = ($noindex ?? false) || cbs_environment_label() !== '';
 $title = $fullTitle ?? (isset($pageTitle) ? $pageTitle . ' — CBS Radio' : 'CBS Radio');
 $desc  = $metaDescription ?? '';
 $home  = site_url('/');
+$brand = cbs_brand();
+$brandLogo = $brand['logo'];
+$brandFav  = $brand['favicon'];
+$brandAlt  = $brand['alt'];
 $font  = static fn (string $file): string => base_url('assets/fonts/' . $file);
 
 $hasContact = $cbs->contactPhone !== '' || $cbs->contactEmail !== '';
@@ -62,7 +66,7 @@ $notice = array_filter([
         <meta property="og:url" content="<?= esc(current_url()) ?>">
     <?php endif; ?>
 
-    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230E1B3D'/%3E%3Ccircle cx='16' cy='17' r='4' fill='%23D62828'/%3E%3Cpath d='M8 17a8 8 0 0 1 16 0M4 17a12 12 0 0 1 24 0' fill='none' stroke='%23F5A800' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E">
+    <?php if ($brandFav !== ''): ?><link rel="icon" href="<?= esc($brandFav, 'attr') ?>"><?php else: ?><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230E1B3D'/%3E%3Ccircle cx='16' cy='17' r='4' fill='%23D62828'/%3E%3Cpath d='M8 17a8 8 0 0 1 16 0M4 17a12 12 0 0 1 24 0' fill='none' stroke='%23F5A800' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E"><?php endif; ?>
 
     <!-- The two faces used for the headline and for reading text, served from
          this site (no third-party request). Only the weights actually used. -->
@@ -135,6 +139,8 @@ $notice = array_filter([
         .cbs-brand { display: inline-flex; align-items: center; gap: .6rem; text-decoration: none;
             font-family: var(--display); font-weight: 800; font-size: 1.5rem; letter-spacing: -0.02em; color: var(--ink); }
         .cbs-footer .cbs-brand { color: #fff; }
+        .cbs-logo { display: block; height: 40px; width: auto; max-width: 200px; }
+        .cbs-footer .cbs-logo { height: 44px; background: #fff; border-radius: 8px; padding: 4px 8px; }
         .cbs-lamp { width: .75rem; height: .75rem; border-radius: 50%; background: var(--lamp); box-shadow: 0 0 0 4px rgba(214, 40, 40, .18); flex: none; }
         .cbs-nav { display: flex; align-items: center; gap: 1.6rem; }
         .cbs-nav a:not(.cbs-btn) { color: var(--ink); text-decoration: none; font-weight: 700; padding: .5rem 0; border-bottom: 2px solid transparent; }
@@ -222,7 +228,7 @@ $notice = array_filter([
 
     <header class="cbs-header">
         <div class="cbs-wrap">
-            <a class="cbs-brand" href="<?= esc($home) ?>"><span class="cbs-lamp" aria-hidden="true"></span>CBS Radio</a>
+            <a class="cbs-brand" href="<?= esc($home) ?>"><?php if ($brandLogo !== ''): ?><img class="cbs-logo" src="<?= esc($brandLogo, 'attr') ?>" alt="<?= esc($brandAlt, 'attr') ?>"><?php else: ?><span class="cbs-lamp" aria-hidden="true"></span>CBS Radio<?php endif; ?></a>
 
             <?php if (! $minimal): ?>
                 <button class="cbs-menu-btn" id="menuBtn" type="button" aria-expanded="false" aria-controls="siteNav">Menu</button>
@@ -254,7 +260,7 @@ $notice = array_filter([
     <footer class="cbs-footer">
         <div class="cbs-wrap<?= ($hasContact && ! $minimal) ? '' : ' cbs-wrap--two' ?>">
             <div>
-                <a class="cbs-brand" href="<?= esc($home) ?>"><span class="cbs-lamp" aria-hidden="true"></span>CBS Radio</a>
+                <a class="cbs-brand" href="<?= esc($home) ?>"><?php if ($brandLogo !== ''): ?><img class="cbs-logo" src="<?= esc($brandLogo, 'attr') ?>" alt="<?= esc($brandAlt, 'attr') ?>"><?php else: ?><span class="cbs-lamp" aria-hidden="true"></span>CBS Radio<?php endif; ?></a>
                 <p>Greetings, tributes and gifts, read out live on CBS Radio.</p>
             </div>
             <?php if (! $minimal): ?>

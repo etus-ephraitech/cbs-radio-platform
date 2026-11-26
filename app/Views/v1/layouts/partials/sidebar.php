@@ -42,9 +42,11 @@ $menu = [
 // Pages only a superadmin may open (the routes enforce it; this only decides whether to show the link).
 if (cbs_is_superadmin()) {
     $menu[] = ['link' => 'admin/users', 'label' => 'Users', 'icon' => 'presenter'];
+    $menu[] = ['link' => 'admin/branding', 'label' => 'Logo', 'icon' => 'gallery'];
 }
 
-$logo = static fn (string $file): string => esc(base_url('assets/images/brand-logos/' . $file), 'attr');
+$uploadedLogo = cbs_brand()['logo']; // Admin > Logo; empty means the theme's own files
+$logo = static fn (string $file): string => $uploadedLogo !== '' ? esc($uploadedLogo, 'attr') : esc(base_url('assets/images/brand-logos/' . $file), 'attr');
 ?>
 <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -140,6 +142,13 @@ $logo = static fn (string $file): string => esc(base_url('assets/images/brand-lo
     <symbol id="icon-templates" viewBox="0 0 24 24" fill="none">
         <path d="M4 4h16v12H8l-4 4z" />
         <path d="M8 8h8M8 12h5" />
+    </symbol>
+
+    <!-- Logo -->
+    <symbol id="icon-gallery" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="4" width="18" height="16" rx="2.5" />
+        <circle cx="9" cy="10" r="1.7" />
+        <path d="m4 18 5.2-5 3.8 3.5 2.5-2.2L20 18" />
     </symbol>
 
     <!-- Presenter portal -->

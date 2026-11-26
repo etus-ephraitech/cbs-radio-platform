@@ -39,7 +39,9 @@ final class RegistryTest extends UnitTestCase
     public function testEverySettingBelongsToAKnownGroup(): void
     {
         foreach (Registry::definitions() as $key => $def) {
-            $this->assertArrayHasKey($def['group'], Registry::groups(), "{$key} is in an unknown group.");
+            $known = Registry::groups() + array_fill_keys(Registry::OWN_PAGE_GROUPS, '');
+
+            $this->assertArrayHasKey($def['group'], $known, "{$key} is in an unknown group.");
         }
     }
 
