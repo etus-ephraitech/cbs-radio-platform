@@ -148,6 +148,12 @@ $routes->group('admin', ['filter' => 'auth:session'], static function ($routes) 
         $routes->post('(:num)/delete', 'Admin\UserController::destroy/$1');
     });
 
+    // How the staff area looks, for everyone. Superadmin only.
+    $routes->group('appearance', ['filter' => 'role:superadmin'], static function ($routes) {
+        $routes->get('/', 'Admin\AppearanceController::index');
+        $routes->post('/', 'Admin\AppearanceController::save');
+    });
+
     // Logo and browser-tab icon. Superadmin only, like Users.
     $routes->group('branding', ['filter' => 'role:superadmin'], static function ($routes) {
         $routes->get('/', 'Admin\BrandingController::index');

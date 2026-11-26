@@ -227,6 +227,7 @@ $isActive = static function (string $segment) use ($currentPath): string {
                 <?php if (cbs_is_superadmin()): ?>
                     <a class="nav-link <?= $isActive('users') ?>" href="<?= site_url('admin/users') ?>">Users</a>
                     <a class="nav-link <?= $isActive('branding') ?>" href="<?= site_url('admin/branding') ?>">Logo</a>
+                    <a class="nav-link <?= $isActive('appearance') ?>" href="<?= site_url('admin/appearance') ?>">Appearance</a>
                 <?php endif; ?>
             </nav>
         </aside>

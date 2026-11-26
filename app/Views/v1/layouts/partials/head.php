@@ -11,9 +11,12 @@
  * @var string $documentTitle Set by layouts/admin.php
  */
 $asset = static fn (string $path): string => esc(base_url('assets/' . ltrim($path, '/')), 'attr');
+
+// The look of the staff area is chosen once, by a superadmin, on Admin > Appearance, and is the same for everyone.
+$themeConfig = config('CbsRadio');
 ?>
 <!DOCTYPE html>
-<html lang="en" dir="ltr" data-nav-layout="vertical" data-theme-mode="light" data-header-styles="light" data-width="fullwidth" data-menu-styles="dark" data-toggled="close">
+<html <?= \App\Libraries\ThemeAttributes::htmlAttributes($themeConfig) ?>>
 
 <head>
     <meta charset="UTF-8">
@@ -29,10 +32,24 @@ $asset = static fn (string $path): string => esc(base_url('assets/' . ltrim($pat
     <?php else: ?><link rel="icon" href="<?= $asset('images/brand-logos/toggle-logo.svg') ?>" type="image/svg+xml"><?php endif; ?>
 
     <script>window.CBS_ASSETS = <?= json_encode(base_url('assets/'), JSON_UNESCAPED_SLASHES | JSON_HEX_TAG) ?>;</script>
+    <script>
+        /* Older versions of the theme kept each person's own choices in this browser. The look is now set for
+           everyone on Admin > Appearance, so those leftovers are cleared before the theme's scripts can read them. */
+        (function () {
+            try {
+                var drop = [];
+                for (var i = 0; i < localStorage.length; i++) {
+                    var k = localStorage.key(i);
+                    if (k && (k.indexOf('yzen') === 0 || ['primaryRGB', 'bodyBgRGB', 'bodylightRGB', 'bgtheme'].indexOf(k) !== -1)) { drop.push(k); }
+                }
+                drop.forEach(function (k) { localStorage.removeItem(k); });
+            } catch (e) { /* storage unavailable: nothing to clear */ }
+        })();
+    </script>
     <script src="<?= $asset('libs/choices.js/public/assets/scripts/choices.min.js') ?>"></script>
     <script src="<?= $asset('js/main.js') ?>"></script>
 
-    <link id="style" href="<?= $asset('libs/bootstrap/css/bootstrap.min.css') ?>" rel="stylesheet">
+    <link id="style" href="<?= $asset(\App\Libraries\ThemeAttributes::bootstrapSheet($themeConfig)) ?>" rel="stylesheet">
     <link href="<?= $asset('css/styles.min.css') ?>" rel="stylesheet">
     <link href="<?= $asset('css/icons.min.css') ?>" rel="stylesheet">
     <link href="<?= $asset('libs/node-waves/waves.min.css') ?>" rel="stylesheet">

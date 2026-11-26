@@ -22,3 +22,13 @@ under generated names (the folder must be writable by PHP) and their paths are s
 `config('CbsRadio')->logoPath` is what views read, through `cbs_brand()`. With nothing uploaded, or if a file goes
 missing, every page shows the built-in CBS Radio name and lamp. The logo appears in the public header and footer,
 both admin shells and the sign-in page. Replacing or removing a file deletes the old one.
+
+## Appearance
+
+Admin > Appearance (superadmin only) sets how the staff area looks, for everyone: colour mode, reading direction,
+side or top menu and its style, page width and style, header and menu styles and behaviour, brand colour and
+background pattern. The choices are ordinary settings (group `appearance`, validated and logged like the rest of
+Admin > Settings; each has "Reset to default"), applied by `App\Libraries\ThemeAttributes` as `data-*` attributes on
+`<html>` by the server, so there is no flash of the wrong theme. The theme's own floating switcher and the header
+light/dark toggle are hidden, and any per-browser theme state left by them is cleared on load, so the saved look
+always wins. It does not change the public website.

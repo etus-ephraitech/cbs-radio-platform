@@ -37,7 +37,7 @@ final class Registry
      * Groups whose settings are managed on their own superadmin-only page rather than as a tab here (see
      * BrandingService). They are saved and applied like any other setting; they just have no tab.
      */
-    public const OWN_PAGE_GROUPS = ['branding'];
+    public const OWN_PAGE_GROUPS = ['branding', 'appearance'];
 
     private const TEMPLATE_EVENTS = [
         'booking_confirmation' => 'Greeting received',
@@ -403,6 +403,56 @@ final class Registry
             'help'  => '',
             'target' => ['CbsRadio', 'logoAlt'],
         ];
+
+        // ---------------------------------------------------------- appearance
+        // How the staff area looks for everyone, set on Admin > Appearance (superadmin only). The values are the
+        // theme's own data-* attribute values, written onto <html> by App\Libraries\ThemeAttributes.
+        $style = [
+            'light' => 'Light', 'dark' => 'Dark', 'color' => 'Brand colour',
+            'gradient' => 'Gradient', 'transparent' => 'Transparent',
+        ];
+        $fixedScroll = ['fixed' => 'Fixed — stays in view', 'scrollable' => 'Scrollable — moves with the page'];
+
+        $appearance = [
+            'themeMode' => ['select', 'Colour mode', ['light' => 'Light', 'dark' => 'Dark'],
+                'Light is easiest to read in a bright room; dark suits a studio.'],
+            'themeDir' => ['select', 'Reading direction', ['ltr' => 'Left to right', 'rtl' => 'Right to left'],
+                'Left to right for English and Luganda.'],
+            'themeNavLayout' => ['select', 'Menu position', ['vertical' => 'Side menu', 'horizontal' => 'Top menu'],
+                'A side menu suits a long list of pages; a top menu leaves more room for tables.'],
+            'themeVerticalStyle' => ['select', 'Side menu style', [
+                'default' => 'Default', 'closed' => 'Closed — hidden until opened', 'icontext' => 'Icons with text',
+                'overlay' => 'Overlay — slides over the page', 'detached' => 'Detached', 'doublemenu' => 'Double menu',
+            ], 'Only used with the side menu.'],
+            'themeNavStyle' => ['select', 'Top menu style', [
+                'menu-click' => 'Open on click', 'menu-hover' => 'Open on hover',
+                'icon-click' => 'Icons, open on click', 'icon-hover' => 'Icons, open on hover',
+            ], 'Only used with the top menu.'],
+            'themePageStyle' => ['select', 'Page style', ['regular' => 'Regular', 'classic' => 'Classic', 'modern' => 'Modern'],
+                'How cards and page backgrounds are drawn.'],
+            'themeWidth' => ['select', 'Page width', ['fullwidth' => 'Full width', 'boxed' => 'Boxed', 'default' => 'Default'],
+                'Boxed keeps lines short on very wide screens.'],
+            'themeMenuPosition' => ['select', 'Menu behaviour', $fixedScroll, ''],
+            'themeHeaderPosition' => ['select', 'Header behaviour', $fixedScroll, ''],
+            'themeHeaderStyles' => ['select', 'Header style', $style, ''],
+            'themeMenuStyles' => ['select', 'Menu style', $style, ''],
+            'themePrimary' => ['select', 'Brand colour', [
+                '' => 'Theme default', '214, 40, 40' => 'CBS red', '25, 168, 213' => 'Sky blue', '161, 182, 28' => 'Olive',
+                '217, 116, 25' => 'Orange', '166, 25, 230' => 'Purple', '223, 25, 194' => 'Pink',
+            ], 'Buttons, links and highlights in the staff area.'],
+            'themeBgImage' => ['select', 'Background pattern', [
+                '' => 'None', 'bgimg1' => 'Pattern 1', 'bgimg2' => 'Pattern 2', 'bgimg3' => 'Pattern 3',
+                'bgimg4' => 'Pattern 4', 'bgimg5' => 'Pattern 5',
+            ], 'A faint pattern behind the staff pages.'],
+        ];
+
+        foreach ($appearance as $prop => [$type, $label, $options, $help]) {
+            $defs['appearance.' . $prop] = [
+                'group' => 'appearance', 'type' => $type, 'options' => $options,
+                'label' => $label, 'help' => $help,
+                'target' => ['CbsRadio', $prop],
+            ];
+        }
 
         // ------------------------------------------------------------ templates
         foreach (self::TEMPLATE_EVENTS as $event => $eventLabel) {

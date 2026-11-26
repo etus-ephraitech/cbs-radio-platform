@@ -114,6 +114,22 @@ class CbsRadio extends BaseConfig
     public string $siteMessage  = '';
     public string $siteReturnAt = '';   // "YYYY-MM-DD HH:MM" in the station's time zone, or empty
 
+    // ----- Staff area appearance -----
+    // Set on Admin > Appearance (superadmin only); the values are the theme's own data-* attribute values.
+    public string $themeMode           = 'light';
+    public string $themeDir            = 'ltr';
+    public string $themeNavLayout      = 'vertical';
+    public string $themeVerticalStyle  = 'default';
+    public string $themeNavStyle       = 'menu-click';
+    public string $themePageStyle      = 'regular';
+    public string $themeWidth          = 'fullwidth';
+    public string $themeMenuPosition   = 'fixed';
+    public string $themeHeaderPosition = 'fixed';
+    public string $themeHeaderStyles   = 'light';
+    public string $themeMenuStyles     = 'dark';
+    public string $themePrimary        = '';
+    public string $themeBgImage        = '';
+
     // ----- Admin screens -----
     // Rows per page on paginated admin lists (currently the notifications log).
     public int $adminPageSize = 25;

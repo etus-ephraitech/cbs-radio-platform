@@ -65,7 +65,8 @@ $icon       = static fn (string $path): string => '<svg xmlns="http://www.w3.org
                 </a>
             </li>
 
-            <li class="header-element header-theme-mode">
+            <?php /* Hidden, not removed: the theme's script looks for this button. The look is set on Admin > Appearance. */ ?>
+            <li class="header-element header-theme-mode d-none" hidden>
                 <a href="javascript:void(0);" class="header-link layout-setting" aria-label="Switch light or dark mode">
                     <span class="light-layout"><?= $icon('M21.5 14.078A8.557 8.557 0 0 1 9.922 2.5C5.668 3.497 2.5 7.315 2.5 11.873a9.627 9.627 0 0 0 9.627 9.627c4.558 0 8.376-3.168 9.373-7.422') ?></span>
                     <span class="dark-layout"><?= $icon('M17 12a5 5 0 1 1-10 0a5 5 0 0 1 10 0M12 2v1.5m0 17V22m7.07-2.929l-1.06-1.06M5.99 5.989L4.928 4.93M22 12h-1.5m-17 0H2m17.071-7.071l-1.06 1.06M5.99 18.011l-1.06 1.06') ?></span>
@@ -104,7 +105,7 @@ $icon       = static fn (string $path): string => '<svg xmlns="http://www.w3.org
                 </ul>
             </li>
 
-            <li class="header-element">
+            <li class="header-element d-none" hidden>
                 <a href="javascript:void(0);" class="header-link switcher-icon" data-bs-toggle="offcanvas" data-bs-target="#switcher-canvas" aria-label="Theme settings">
                     <?= $icon('M12 15.5a3.5 3.5 0 1 0 0-7a3.5 3.5 0 0 0 0 7m7.4-2.1l1.4 1.1l-1.5 2.6l-1.7-.7a8 8 0 0 1-2 1.2l-.3 1.8h-3l-.3-1.8a8 8 0 0 1-2-1.2l-1.7.7l-1.5-2.6l1.4-1.1a7 7 0 0 1 0-2.8L4.6 9.5l1.5-2.6l1.7.7a8 8 0 0 1 2-1.2l.3-1.8h3l.3 1.8a8 8 0 0 1 2 1.2l1.7-.7l1.5 2.6l-1.4 1.1a7 7 0 0 1 0 2.8') ?>
                 </a>
