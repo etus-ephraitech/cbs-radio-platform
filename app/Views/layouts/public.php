@@ -22,6 +22,8 @@ $cbs   = config('CbsRadio');
 $lean  = $lean ?? false;
 $minimal = $minimal ?? false;
 // A staging copy (app.environmentLabel) is never indexed, whatever the page asks for.
+// Gifts waiting in the visitor's cart, shown beside the menu so they can always get back to it.
+$cartCount = $minimal ? 0 : (new \App\Libraries\GiftCart())->count();
 $noindex = ($noindex ?? false) || cbs_environment_label() !== '';
 $title = $fullTitle ?? (isset($pageTitle) ? $pageTitle . ' — CBS Radio' : 'CBS Radio');
 $desc  = $metaDescription ?? '';
@@ -83,13 +85,15 @@ $notice = array_filter([
             src: url('<?= $font('atkinson-hyperlegible-latin-700-normal.woff2') ?>') format('woff2'); }
 
         :root {
-            --ink: #0E1B3D;        /* deep navy: text, hero, footer */
-            --panel: #17306E;      /* lifted navy: the radio body */
+            --ink: #0E1B3D;        /* deep navy: text, footer, the strong buttons */
+            --panel: #17306E;      /* lifted navy */
             --gold: #F5A800;       /* the action colour: buttons, the amber dial glass */
             --lamp: #D62828;       /* on-air red: the lamp and live states only */
-            --mist: #EDF1F9;       /* tinted section background */
-            --line: #D5DDEE;       /* hairlines on light backgrounds */
-            --muted: #46557A;      /* secondary text on light backgrounds */
+            --cream: #FFF8EE;      /* the warm page background */
+            --peach: #FFE3C4;      /* warm highlight behind illustrations and chips */
+            --mist: #FCEFDD;       /* tinted section background */
+            --line: #EADCC8;       /* hairlines on light backgrounds */
+            --muted: #5A5268;      /* secondary text on light backgrounds (7:1 on cream) */
             --display: 'Bricolage Grotesque', ui-sans-serif, system-ui, sans-serif;
             --body: 'Atkinson Hyperlegible', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
             --focus: var(--ink);
@@ -105,13 +109,13 @@ $notice = array_filter([
             font-size: 1.0625rem;
             line-height: 1.65;
             color: var(--ink);
-            background: #fff;
+            background: var(--cream);
         }
         h1, h2, h3, h4 { font-family: var(--display); font-weight: 800; line-height: 1.1; letter-spacing: -0.02em; }
         a { color: inherit; }
 
         :focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; border-radius: 4px; }
-        .on-dark :focus-visible, .cbs-header :focus-visible, .cbs-footer :focus-visible { --focus: var(--gold); }
+        .on-dark :focus-visible, .cbs-footer :focus-visible { --focus: var(--gold); }
 
         .skip-link { position: absolute; left: -999px; top: 0; background: var(--gold); color: var(--ink);
             padding: .75rem 1.25rem; font-weight: 700; z-index: 100; }
@@ -126,15 +130,19 @@ $notice = array_filter([
         .cbs-announce--staff a { color: #fff; margin-left: .5rem; text-underline-offset: 3px; }
 
         /* ---------- header ---------- */
-        .cbs-header { background: var(--ink); color: #fff; }
-        .cbs-header .cbs-wrap { display: flex; align-items: center; justify-content: space-between; gap: 1rem; min-height: 4.5rem; }
+        .cbs-header { background: var(--cream); color: var(--ink); border-bottom: 1px solid var(--line); position: relative; z-index: 30; }
+        .cbs-header .cbs-wrap { display: flex; align-items: center; justify-content: space-between; gap: 1rem; min-height: 4.75rem; }
         .cbs-brand { display: inline-flex; align-items: center; gap: .6rem; text-decoration: none;
-            font-family: var(--display); font-weight: 800; font-size: 1.45rem; letter-spacing: -0.02em; color: #fff; }
-        .cbs-lamp { width: .7rem; height: .7rem; border-radius: 50%; background: var(--lamp); box-shadow: 0 0 0 3px rgba(214, 40, 40, .28); flex: none; }
-        .cbs-nav { display: flex; align-items: center; gap: 1.75rem; }
-        .cbs-nav a:not(.cbs-btn) { color: #D6DEF2; text-decoration: none; font-weight: 700; padding: .5rem 0; }
-        .cbs-nav a:not(.cbs-btn):hover { color: #fff; text-decoration: underline; text-underline-offset: 6px; }
-        .cbs-menu-btn { display: none; background: transparent; color: #fff; border: 2px solid rgba(255,255,255,.45);
+            font-family: var(--display); font-weight: 800; font-size: 1.5rem; letter-spacing: -0.02em; color: var(--ink); }
+        .cbs-footer .cbs-brand { color: #fff; }
+        .cbs-lamp { width: .75rem; height: .75rem; border-radius: 50%; background: var(--lamp); box-shadow: 0 0 0 4px rgba(214, 40, 40, .18); flex: none; }
+        .cbs-nav { display: flex; align-items: center; gap: 1.6rem; }
+        .cbs-nav a:not(.cbs-btn) { color: var(--ink); text-decoration: none; font-weight: 700; padding: .5rem 0; border-bottom: 2px solid transparent; }
+        .cbs-nav a:not(.cbs-btn):hover { border-bottom-color: var(--gold); }
+        .cbs-cart { display: inline-flex; align-items: center; gap: .45rem; }
+        .cbs-cart b { display: inline-grid; place-items: center; min-width: 1.5rem; height: 1.5rem; padding: 0 .4rem; border-radius: 999px;
+            background: var(--ink); color: #fff; font-size: .8rem; line-height: 1; }
+        .cbs-menu-btn { display: none; background: #fff; color: var(--ink); border: 2px solid var(--line);
             border-radius: 999px; padding: .5rem 1.1rem; font: inherit; font-weight: 700; min-height: 44px; cursor: pointer; }
 
         /* ---------- buttons ---------- */
@@ -143,14 +151,14 @@ $notice = array_filter([
             text-decoration: none; cursor: pointer; line-height: 1.2; }
         .cbs-btn--gold { background: var(--gold); color: var(--ink); }
         .cbs-btn--gold:hover { background: #FFB91F; }
-        .cbs-btn--ghost { background: transparent; color: #fff; border-color: rgba(255,255,255,.55); }
-        .cbs-btn--ghost:hover { border-color: #fff; background: rgba(255,255,255,.08); }
+        .cbs-btn--ghost { background: transparent; color: var(--ink); border-color: var(--line); }
+        .cbs-btn--ghost:hover { border-color: var(--ink); background: #fff; }
         .cbs-btn--ink { background: var(--ink); color: #fff; }
         .cbs-btn--ink:hover { background: var(--panel); }
         .cbs-btn--line { background: transparent; color: var(--ink); border-color: var(--ink); }
         .cbs-btn--line:hover { background: var(--ink); color: #fff; }
         .cbs-header .cbs-btn { min-height: 2.75rem; padding: .5rem 1.25rem; }
-
+        
         /* ---------- notices (lean pages; the booking pages use Toastr) ---------- */
         .cbs-notice { padding: .85rem 1.25rem; text-align: center; font-weight: 700; }
         .cbs-notice--error { background: #FDE7E7; color: #7A1010; }
@@ -178,13 +186,13 @@ $notice = array_filter([
         .cbs-page .display-6 { font-family: var(--display); font-weight: 800; letter-spacing: -0.02em; }
         .cbs-page h1, .cbs-page h2, .cbs-page .card-title { font-family: var(--display); }
         .category-card { border: 0; border-left: 4px solid var(--gold); background: #fff; border-radius: 10px; }
-        .category-card:hover { background: #F7F9FD; }
+        .category-card:hover { background: var(--mist); }
 
         @media (max-width: 820px) {
             .cbs-menu-btn { display: inline-flex; align-items: center; }
-            .cbs-nav { display: none; position: absolute; left: 0; right: 0; top: 100%; z-index: 20; background: var(--ink);
+            .cbs-nav { display: none; position: absolute; left: 0; right: 0; top: 100%; z-index: 20; background: var(--cream);
                 flex-direction: column; align-items: stretch; gap: .25rem; padding: .75rem 1.25rem 1.5rem;
-                border-top: 1px solid rgba(255,255,255,.14); }
+                border-bottom: 1px solid var(--line); box-shadow: 0 18px 30px -20px rgba(74, 44, 10, .35); }
             .cbs-nav.open { display: flex; }
             .cbs-nav a:not(.cbs-btn) { padding: .85rem 0; font-size: 1.1rem; }
             .cbs-header { position: relative; }
@@ -224,6 +232,9 @@ $notice = array_filter([
                     <a href="<?= esc($home) ?>#how">How it works</a>
                     <a href="<?= esc($home) ?>#gifts">Gifts</a>
                     <a href="<?= esc($home) ?>#faq">Questions</a>
+                    <?php if ($cartCount > 0): ?>
+                        <a class="cbs-cart" href="<?= site_url('gifts/cart') ?>" aria-label="Gift cart, <?= esc($cartCount, 'attr') ?> <?= $cartCount === 1 ? 'item' : 'items' ?>">Cart <b aria-hidden="true"><?= esc($cartCount) ?></b></a>
+                    <?php endif; ?>
                     <a class="cbs-btn cbs-btn--gold" href="<?= site_url('booking') ?>">Send a greeting</a>
                 </nav>
             <?php endif; ?>

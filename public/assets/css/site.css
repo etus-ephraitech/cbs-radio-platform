@@ -9,14 +9,14 @@
  */
 
 :root {
-    --ck-radius: 18px;
+    --ck-radius: 20px;
     --ck-radius-sm: 12px;
-    --ck-shadow: 0 1px 2px rgba(14, 27, 61, .06), 0 8px 24px -12px rgba(14, 27, 61, .18);
-    --ck-shadow-lift: 0 2px 4px rgba(14, 27, 61, .06), 0 18px 40px -18px rgba(14, 27, 61, .35);
+    --ck-shadow: 0 1px 2px rgba(74, 44, 10, .06), 0 10px 28px -14px rgba(74, 44, 10, .22);
+    --ck-shadow-lift: 0 2px 4px rgba(74, 44, 10, .06), 0 20px 44px -18px rgba(74, 44, 10, .38);
     --ck-ok: #157A43;
     --ck-ok-bg: #E2F5E9;
     --ck-surface: #fff;
-    --ck-page: #F5F7FC;
+    --ck-page: #FFF8EE;
 }
 
 /* ------------------------------------------------------------------ page frame */
@@ -94,7 +94,7 @@
     display: block; width: 100%; min-height: 3.1rem; padding: .75rem .95rem; border: 2px solid var(--line); border-radius: var(--ck-radius-sm);
     background: #fff; color: var(--ink); font: inherit; line-height: 1.4; transition: border-color .15s, box-shadow .15s; }
 .ck-textarea, #bookingForm textarea.form-control { min-height: 8rem; resize: vertical; line-height: 1.6; }
-.ck-input:hover, .ck-select:hover, .ck-textarea:hover, #bookingForm .form-control:hover { border-color: #AFBEDD; }
+.ck-input:hover, .ck-select:hover, .ck-textarea:hover, #bookingForm .form-control:hover { border-color: #D3BE9F; }
 .ck-input:focus, .ck-select:focus, .ck-textarea:focus, #bookingForm .form-control:focus, #bookingForm .form-select:focus {
     outline: none; border-color: var(--ink); box-shadow: 0 0 0 4px rgba(14, 27, 61, .12); }
 .ck-select, #bookingForm .form-select { appearance: none; padding-right: 2.6rem;
@@ -150,9 +150,9 @@
 .ck-choice { position: relative; display: flex; flex-direction: column; gap: .5rem; min-height: 100%; padding: 1.25rem 1.25rem 1.15rem;
     border: 2px solid var(--line); border-radius: var(--ck-radius); background: #fff; cursor: pointer;
     transition: border-color .15s, box-shadow .15s, transform .15s, background-color .15s; }
-.ck-choice:hover { border-color: #9FB0D6; box-shadow: var(--ck-shadow); transform: translateY(-2px); }
+.ck-choice:hover { border-color: #D3BE9F; box-shadow: var(--ck-shadow); transform: translateY(-2px); }
 .ck-choice input[type="radio"] { position: absolute; opacity: 0; pointer-events: none; }
-.ck-choice:has(input:checked), .ck-choice.is-selected { border-color: var(--ink); background: linear-gradient(180deg, #F4F7FE, #fff); box-shadow: var(--ck-shadow-lift); }
+.ck-choice:has(input:checked), .ck-choice.is-selected { border-color: var(--ink); background: linear-gradient(180deg, #FFF3DF, #fff); box-shadow: var(--ck-shadow-lift); }
 .ck-choice:has(input:focus-visible) { outline: 3px solid var(--ink); outline-offset: 3px; }
 .ck-tick { position: absolute; top: 1rem; right: 1rem; display: grid; place-items: center; width: 1.6rem; height: 1.6rem; border-radius: 50%;
     border: 2px solid var(--line); color: transparent; transition: background-color .15s, border-color .15s, color .15s; }
@@ -200,7 +200,7 @@
 .ck-gifts { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr)); }
 .ck-gift { position: relative; display: flex; flex-direction: column; gap: .7rem; padding: 1.15rem; border: 2px solid var(--line); border-radius: var(--ck-radius);
     background: #fff; transition: border-color .15s, box-shadow .15s, background-color .15s; }
-.ck-gift.is-selected { border-color: var(--ink); background: linear-gradient(180deg, #F4F7FE, #fff); box-shadow: var(--ck-shadow-lift); }
+.ck-gift.is-selected { border-color: var(--ink); background: linear-gradient(180deg, #FFF3DF, #fff); box-shadow: var(--ck-shadow-lift); }
 .ck-gift.is-unavailable { opacity: .5; }
 .ck-gift-top { display: flex; gap: .85rem; align-items: center; }
 .ck-gift-name { margin: 0; font-family: var(--display); font-weight: 800; font-size: 1.05rem; line-height: 1.2; }
@@ -214,7 +214,7 @@
 .ck-qty button { display: grid; place-items: center; width: 2.6rem; height: 2.6rem; border: 0; border-radius: 50%; background: transparent;
     color: var(--ink); font: inherit; font-size: 1.25rem; font-weight: 700; cursor: pointer; }
 .ck-qty button:hover:not(:disabled) { background: var(--mist); }
-.ck-qty button:disabled { color: #B5C0D8; cursor: not-allowed; }
+.ck-qty button:disabled { color: #CDBBA2; cursor: not-allowed; }
 .ck-qty input { width: 2.4rem; border: 0; background: transparent; text-align: center; font: inherit; font-weight: 700; color: var(--ink); -moz-appearance: textfield; }
 .ck-qty input::-webkit-outer-spin-button, .ck-qty input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 .ck-qty input:focus { outline: none; }

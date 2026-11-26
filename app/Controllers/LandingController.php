@@ -3,7 +3,9 @@
 namespace App\Controllers;
 
 use App\Models\CategoryModel;
+use App\Libraries\GiftCart;
 use App\Models\GiftModel;
+use App\Models\GiftVendorModel;
 use App\Models\RateTierModel;
 use App\Models\ShowModel;
 
@@ -43,6 +45,7 @@ class LandingController extends BaseController
             'shows'           => $shows,
             'sampleShow'      => $shows[0]['name'] ?? 'our morning show',
             'gifts'           => $this->featuredGifts(),
+            'cartCount'       => (new GiftCart())->count(),
             'giftTypes'       => self::GIFT_TYPE_LABELS,
         ]);
     }
@@ -170,17 +173,40 @@ class LandingController extends BaseController
     }
 
     /**
-     * A handful of gifts to show on the homepage, our own before vendors'.
+     * Up to eight gifts for the homepage shelf: a mix of gifts that can be added to a greeting (ours first, then
+     * other vendors') and gifts delivered to the door by a hosted-checkout partner (Katale), which are bought with
+     * the gift cart. Each carries 'hosted' so the page knows which button to show. A delivered gift that is out of
+     * stock is left off, so the shelf never offers what the cart would refuse.
      *
      * @return array<int, array<string, mixed>>
      */
     protected function featuredGifts(): array
     {
-        $gifts = (new GiftModel())->orderable();
+        $own = $hosted = [];
 
-        usort($gifts, static fn (array $a, array $b) => [$a['source'] === 'local' ? 0 : 1, (float) $a['price']]
+        foreach ((new GiftModel())->active() as $gift) {
+            $isHosted = $gift['source'] === GiftModel::SOURCE_VENDOR
+                && in_array($gift['vendor_driver'] ?? '', GiftVendorModel::HOSTED_DRIVERS, true);
+
+            if ($isHosted) {
+                if (isset($gift['stock_available']) && (int) $gift['stock_available'] === 0) {
+                    continue;
+                }
+
+                $hosted[] = $gift + ['hosted' => true];
+            } else {
+                $own[] = $gift + ['hosted' => false];
+            }
+        }
+
+        usort($own, static fn (array $a, array $b) => [$a['source'] === 'local' ? 0 : 1, (float) $a['price']]
             <=> [$b['source'] === 'local' ? 0 : 1, (float) $b['price']]);
+        usort($hosted, static fn (array $a, array $b) => (float) $a['price'] <=> (float) $b['price']);
 
-        return array_slice($gifts, 0, 4);
+        // Half the shelf each when both kinds exist; whichever kind is short leaves its room to the other.
+        $hostedShown = min(count($hosted), max(4, 8 - count($own)));
+        $ownShown    = min(count($own), 8 - $hostedShown);
+
+        return array_merge(array_slice($own, 0, $ownShown), array_slice($hosted, 0, $hostedShown));
     }
 }
