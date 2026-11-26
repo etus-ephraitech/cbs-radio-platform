@@ -72,6 +72,8 @@ foreach ($gifts as $gift) {
         break;
     }
 }
+$greetingGifts = array_values(array_filter($gifts, static fn (array $g): bool => empty($g['hosted'])));
+$shopGifts     = array_values(array_filter($gifts, static fn (array $g): bool => ! empty($g['hosted'])));
 $hasHosted = in_array(true, array_map(static fn (array $g): bool => ! empty($g['hosted']), $gifts), true);
 ?>
 <?= $this->extend(ui_layout('public')) ?>
@@ -232,49 +234,101 @@ $hasHosted = in_array(true, array_map(static fn (array $g): bool => ! empty($g['
                     </div>
                 </div>
 
-                <ul class="hp-gifts">
-                    <?php foreach ($gifts as $gift): ?>
-                        <?php
-                        $look   = cbs_gift_look($gift['type']);
-                        $hosted = ! empty($gift['hosted']);
-                        $image  = (string) ($gift['image_url'] ?? '');
-                        ?>
-                        <li class="hp-gift">
-                            <div class="hp-gift-media hp-tone--<?= esc($look['tone'], 'attr') ?>">
-                                <?php if ($image !== ''): ?>
-                                    <img src="<?= esc($image, 'attr') ?>" alt="" loading="lazy" decoding="async">
-                                <?php else: ?>
-                                    <span class="hp-gift-glyph" aria-hidden="true"><?= cbs_icon_svg($look['icon'], 2.2) ?></span>
-                                <?php endif; ?>
-                                <span class="hp-gift-badge"><?= cbs_icon_svg($hosted ? 'truck' : $look['icon'], .95) ?> <?= esc($hosted ? 'Delivered to their door' : $look['label']) ?></span>
-                            </div>
-                            <div class="hp-gift-body">
-                                <h3><?= esc($gift['name']) ?></h3>
-                                <?php if (! empty($gift['description'])): ?>
-                                    <p class="hp-gift-desc"><?= esc(cbs_excerpt($gift['description'], 90)) ?></p>
-                                <?php endif; ?>
-                                <?php if ($hosted && ($gift['minimum_delivery_hours'] ?? null) !== null): ?>
-                                    <p class="hp-gift-kind">Order at least <?= esc($gift['minimum_delivery_hours']) ?> hours ahead.</p>
-                                <?php elseif (! $hosted && ! empty($gift['vendor_name'])): ?>
-                                    <p class="hp-gift-kind">From <?= esc($gift['vendor_name']) ?></p>
-                                <?php endif; ?>
-                                <div class="hp-gift-foot">
-                                    <span class="hp-gift-price"><?= esc(cbs_money((float) $gift['price'], $gift['currency'])) ?></span>
-                                    <?php if ($hosted): ?>
-                                        <form action="<?= site_url('gifts/cart/add') ?>" method="post">
-                                            <?= csrf_field() ?>
-                                            <input type="hidden" name="gift_id" value="<?= esc($gift['id'], 'attr') ?>">
-                                            <input type="hidden" name="quantity" value="1">
-                                            <button type="submit" class="ck-btn ck-btn--gold" aria-label="Add <?= esc($gift['name'], 'attr') ?> to your cart">Add to cart</button>
-                                        </form>
+                <?php if ($greetingGifts !== []): ?>
+                    <h3 class="hp-subhead"><?= cbs_icon_svg('mic', 1.1) ?> Add to your greeting <small>One payment for both</small></h3>
+                    <ul class="hp-gifts">
+                        <?php foreach ($greetingGifts as $gift): ?>
+                            <?php
+                            $look   = cbs_gift_look($gift['type']);
+                            $hosted = ! empty($gift['hosted']);
+                            $image  = (string) ($gift['image_url'] ?? '');
+                            ?>
+                            <li class="hp-gift">
+                                <div class="hp-gift-media hp-tone--<?= esc($look['tone'], 'attr') ?>">
+                                    <?php if ($image !== ''): ?>
+                                        <img src="<?= esc($image, 'attr') ?>" alt="" loading="lazy" decoding="async">
                                     <?php else: ?>
-                                        <a class="ck-btn ck-btn--ink" href="<?= site_url('gifts?gift=' . (int) $gift['id']) ?>" aria-label="Send <?= esc($gift['name'], 'attr') ?>">Send this</a>
+                                        <span class="hp-gift-glyph" aria-hidden="true"><?= cbs_icon_svg($look['icon'], 2.2) ?></span>
                                     <?php endif; ?>
+                                    <span class="hp-gift-badge"><?= cbs_icon_svg($hosted ? 'truck' : $look['icon'], .95) ?> <?= esc($hosted ? 'Delivered to their door' : $look['label']) ?></span>
                                 </div>
-                            </div>
-                        </li>
-                    <?php endforeach; ?>
-                </ul>
+                                <div class="hp-gift-body">
+                                    <h4><?= esc($gift['name']) ?></h4>
+                                    <?php if (! empty($gift['vendor_name'])): ?>
+                                        <p class="hp-gift-kind">From <?= esc($gift['vendor_name']) ?></p>
+                                    <?php endif; ?>
+                                    <?php if (! empty($gift['description'])): ?>
+                                        <p class="hp-gift-desc"><?= esc(cbs_excerpt($gift['description'], 90)) ?></p>
+                                    <?php endif; ?>
+                                    <?php if ($hosted && ($gift['minimum_delivery_hours'] ?? null) !== null): ?>
+                                        <p class="hp-gift-kind">Order at least <?= esc($gift['minimum_delivery_hours']) ?> hours ahead.</p>
+                                    <?php endif; ?>
+                                    <div class="hp-gift-foot">
+                                        <span class="hp-gift-price"><?= esc(cbs_money((float) $gift['price'], $gift['currency'])) ?></span>
+                                        <?php if ($hosted): ?>
+                                            <form action="<?= site_url('gifts/cart/add') ?>" method="post">
+                                                <?= csrf_field() ?>
+                                                <input type="hidden" name="gift_id" value="<?= esc($gift['id'], 'attr') ?>">
+                                                <input type="hidden" name="quantity" value="1">
+                                                <button type="submit" class="ck-btn ck-btn--gold" aria-label="Add <?= esc($gift['name'], 'attr') ?> to your cart">Add to cart</button>
+                                            </form>
+                                        <?php else: ?>
+                                            <a class="ck-btn ck-btn--ink" href="<?= site_url('gifts?gift=' . (int) $gift['id']) ?>" aria-label="Send <?= esc($gift['name'], 'attr') ?>">Send this</a>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
+                            </li>
+                        <?php endforeach; ?>
+                    </ul>
+                <?php endif; ?>
+
+                <?php if ($shopGifts !== []): ?>
+                    <h3 class="hp-subhead" id="shopGifts"><?= cbs_icon_svg('truck', 1.1) ?> Delivered to their door <small>From our partner shop</small></h3>
+                    <ul class="hp-gifts">
+                        <?php foreach ($shopGifts as $gift): ?>
+                            <?php
+                            $look   = cbs_gift_look($gift['type']);
+                            $hosted = ! empty($gift['hosted']);
+                            $image  = (string) ($gift['image_url'] ?? '');
+                            ?>
+                            <li class="hp-gift">
+                                <div class="hp-gift-media hp-tone--<?= esc($look['tone'], 'attr') ?>">
+                                    <?php if ($image !== ''): ?>
+                                        <img src="<?= esc($image, 'attr') ?>" alt="" loading="lazy" decoding="async">
+                                    <?php else: ?>
+                                        <span class="hp-gift-glyph" aria-hidden="true"><?= cbs_icon_svg($look['icon'], 2.2) ?></span>
+                                    <?php endif; ?>
+                                    <span class="hp-gift-badge"><?= cbs_icon_svg($hosted ? 'truck' : $look['icon'], .95) ?> <?= esc($hosted ? 'Delivered to their door' : $look['label']) ?></span>
+                                </div>
+                                <div class="hp-gift-body">
+                                    <h4><?= esc($gift['name']) ?></h4>
+                                    <?php if (! empty($gift['vendor_name'])): ?>
+                                        <p class="hp-gift-kind">From <?= esc($gift['vendor_name']) ?></p>
+                                    <?php endif; ?>
+                                    <?php if (! empty($gift['description'])): ?>
+                                        <p class="hp-gift-desc"><?= esc(cbs_excerpt($gift['description'], 90)) ?></p>
+                                    <?php endif; ?>
+                                    <?php if ($hosted && ($gift['minimum_delivery_hours'] ?? null) !== null): ?>
+                                        <p class="hp-gift-kind">Order at least <?= esc($gift['minimum_delivery_hours']) ?> hours ahead.</p>
+                                    <?php endif; ?>
+                                    <div class="hp-gift-foot">
+                                        <span class="hp-gift-price"><?= esc(cbs_money((float) $gift['price'], $gift['currency'])) ?></span>
+                                        <?php if ($hosted): ?>
+                                            <form action="<?= site_url('gifts/cart/add') ?>" method="post">
+                                                <?= csrf_field() ?>
+                                                <input type="hidden" name="gift_id" value="<?= esc($gift['id'], 'attr') ?>">
+                                                <input type="hidden" name="quantity" value="1">
+                                                <button type="submit" class="ck-btn ck-btn--gold" aria-label="Add <?= esc($gift['name'], 'attr') ?> to your cart">Add to cart</button>
+                                            </form>
+                                        <?php else: ?>
+                                            <a class="ck-btn ck-btn--ink" href="<?= site_url('gifts?gift=' . (int) $gift['id']) ?>" aria-label="Send <?= esc($gift['name'], 'attr') ?>">Send this</a>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
+                            </li>
+                        <?php endforeach; ?>
+                    </ul>
+                <?php endif; ?>
 
                 <p class="hp-gifts-note">
                     <span><?= cbs_icon_svg('check', 1) ?> One payment when you add a gift to a greeting</span>

@@ -154,6 +154,23 @@ final class LandingPageTest extends AppFeatureTestCase
         $this->assertStringContainsString('action="' . site_url('gifts/cart/add') . '"', $body);
         $this->assertStringContainsString('name="gift_id" value="' . $gift['id'] . '"', $body);
         $this->assertStringContainsString("paid for on our partner shop's secure page", $body);
+        $this->assertStringContainsString('Delivered to their door', $body);
+        $this->assertStringNotContainsString('Add to your greeting', $body, 'No greeting group when there are no greeting gifts.');
+    }
+
+    public function testGiftsFromEveryVendorAreShownInTheirOwnGroups(): void
+    {
+        $generic = $this->makeVendor(['name' => 'Gift Hub', 'slug' => 'gift-hub']);
+        $this->makeGift(['name' => 'Birthday E-card']);
+        $this->makeGift(['name' => 'Hub Airtime', 'type' => 'airtime', 'source' => 'vendor', 'vendor_id' => $generic['id']]);
+        $this->makeHostedGift(['name' => 'Flower Bouquet']);
+
+        $body = $this->body();
+
+        foreach (['Add to your greeting', 'Birthday E-card', 'Hub Airtime', 'From Gift Hub', 'Delivered to their door', 'Flower Bouquet', 'From Katale'] as $text) {
+            $this->assertStringContainsString($text, $body);
+        }
+        $this->assertSame(1, substr_count($body, 'gifts/cart/add'), 'Only the delivered gift is bought with the cart.');
     }
 
     public function testAGiftOfOursOffersSendThisAndNeverTheCart(): void

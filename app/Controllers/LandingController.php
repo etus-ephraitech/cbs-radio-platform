@@ -173,12 +173,12 @@ class LandingController extends BaseController
     }
 
     /**
-     * Up to eight gifts for the homepage shelf: a mix of gifts that can be added to a greeting (ours first, then
-     * other vendors') and gifts delivered to the door by a hosted-checkout partner (Katale), which are bought with
-     * the gift cart. Each carries 'hosted' so the page knows which button to show. A delivered gift that is out of
-     * stock is left off, so the shelf never offers what the cart would refuse.
+     * The gifts for the homepage: up to four that can be added to a greeting (ours first, then other vendors') and
+     * up to eight delivered to the door by a hosted-checkout partner (Katale), which are bought with the gift cart.
+     * Each carries 'hosted' so the page knows which group and which button it belongs to. A delivered gift that is
+     * out of stock is left off, so the page never offers what the cart would refuse.
      *
-     * @return array<int, array<string, mixed>>
+     * @return array<int, array<string, mixed>> the greeting gifts first, then the delivered ones
      */
     protected function featuredGifts(): array
     {
@@ -203,10 +203,6 @@ class LandingController extends BaseController
             <=> [$b['source'] === 'local' ? 0 : 1, (float) $b['price']]);
         usort($hosted, static fn (array $a, array $b) => (float) $a['price'] <=> (float) $b['price']);
 
-        // Half the shelf each when both kinds exist; whichever kind is short leaves its room to the other.
-        $hostedShown = min(count($hosted), max(4, 8 - count($own)));
-        $ownShown    = min(count($own), 8 - $hostedShown);
-
-        return array_merge(array_slice($own, 0, $ownShown), array_slice($hosted, 0, $hostedShown));
+        return array_merge(array_slice($own, 0, 4), array_slice($hosted, 0, 8));
     }
 }
