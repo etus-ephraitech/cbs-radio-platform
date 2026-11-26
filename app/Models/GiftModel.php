@@ -68,6 +68,21 @@ class GiftModel extends Model
     }
 
     /**
+     * The active gifts that can be ordered with the standard form or inside a greeting: everything except gifts
+     * from a hosted-checkout vendor (Katale), which are bought through the gift cart and paid on the vendor's page.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function orderable(): array
+    {
+        return array_values(array_filter(
+            $this->active(),
+            static fn (array $gift): bool => ! ($gift['source'] === self::SOURCE_VENDOR
+                && in_array($gift['vendor_driver'] ?? '', GiftVendorModel::HOSTED_DRIVERS, true)),
+        ));
+    }
+
+    /**
      * The active gifts that are bought through a vendor's hosted checkout (the gift cart), by id.
      * A gift whose vendor is switched off, or that is not from a hosted vendor, is not returned.
      *

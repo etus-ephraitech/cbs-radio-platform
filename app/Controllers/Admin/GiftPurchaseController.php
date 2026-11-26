@@ -26,7 +26,7 @@ class GiftPurchaseController extends BaseAdminController
         $state = $this->request->getGet('state');
         $state = in_array($state, ['open', 'in_checkout', 'awaiting_payment', 'paid', 'cancelled', 'expired', 'failed'], true) ? $state : null;
 
-        return view('admin/gift_purchases/index', [
+        return ui_view('admin/gift_purchases/index', [
             'purchases' => $this->checkoutModel->adminList($state),
             'state'     => $state,
         ]);
@@ -42,7 +42,7 @@ class GiftPurchaseController extends BaseAdminController
 
         $order = VendorCheckoutModel::order($purchase);
 
-        return view('admin/gift_purchases/show', [
+        return ui_view('admin/gift_purchases/show', [
             'purchase'   => $purchase,
             'lines'      => VendorCheckoutModel::lines($purchase),
             'order'      => $order,

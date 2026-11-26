@@ -55,7 +55,7 @@ class GiftCartController extends BaseController
             session()->setFlashdata('toastr_error', 'We took out a gift that is no longer available.');
         }
 
-        return view('gifts/cart', [
+        return ui_view('gifts/cart', [
             'rows'     => $rows,
             'total'    => $total,
             'currency' => $rows !== [] ? $rows[0]['gift']['currency'] : 'UGX',
@@ -167,7 +167,7 @@ class GiftCartController extends BaseController
 
         $order = VendorCheckoutModel::order($checkout);
 
-        return view('gifts/purchase', [
+        return ui_view('gifts/purchase', [
             'checkout'   => $checkout,
             'lines'      => VendorCheckoutModel::lines($checkout),
             'order'      => $order,

@@ -102,6 +102,32 @@ $groupIcons = [
             </div>
         </form>
 
+        <?php if ($group === 'status'): ?>
+            <div class="card custom-card">
+                <div class="card-header"><div class="card-title">Preview</div></div>
+                <div class="card-body pt-0">
+                    <p class="text-muted fs-13">
+                        See the page exactly as visitors will, using the settings as last saved. Staff can always see the
+                        real site, so this is the only way to check these pages before switching one on.
+                    </p>
+                    <div class="d-flex flex-wrap gap-2">
+                        <a class="btn btn-sm btn-primary-light" target="_blank" rel="noopener" href="<?= site_url('admin/settings/preview/coming_soon') ?>">Preview the coming soon page <i class="ri-external-link-line ms-1" aria-hidden="true"></i></a>
+                        <a class="btn btn-sm btn-primary-light" target="_blank" rel="noopener" href="<?= site_url('admin/settings/preview/maintenance') ?>">Preview the maintenance page <i class="ri-external-link-line ms-1" aria-hidden="true"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="card custom-card">
+                <div class="card-header"><div class="card-title">What stays working</div></div>
+                <div class="card-body pt-0">
+                    <ul class="mb-0 ps-3 fs-13">
+                        <li>The admin area and the presenter portal, so staff can still work and switch the site back on.</li>
+                        <li>Payment confirmations from the Mobile Money provider, so a payment made just before you closed the site is still recorded.</li>
+                        <li>Anyone signed in as staff sees the whole public site, with a red banner as a reminder.</li>
+                    </ul>
+                </div>
+            </div>
+        <?php endif; ?>
+
         <?php if ($group === 'notifications'): ?>
             <div class="card custom-card">
                 <div class="card-header"><div class="card-title">Send a test message</div></div>

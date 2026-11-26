@@ -27,6 +27,19 @@
                            value="<?= esc(old('name', null, false) ?? $vendor['name'] ?? '', 'attr') ?>">
                 </div>
 
+                <?php $driver = old('driver', null, false) ?? $vendor['driver'] ?? 'generic'; ?>
+                <div class="mb-3">
+                    <label for="vendor-driver" class="form-label">Integration</label>
+                    <select name="driver" id="vendor-driver" class="form-select">
+                        <option value="generic" <?= $driver === 'generic' ? 'selected' : '' ?>>Generic REST (products and orders; paid through us)</option>
+                        <option value="katale" <?= $driver === 'katale' ? 'selected' : '' ?>>Katale Plus (gift cart; customers pay Katale)</option>
+                    </select>
+                    <div class="form-text">
+                        Katale: use the name <code>Katale</code> so the key is <code>vendor.katale.apiKey</code>, and leave the
+                        address empty to use <code>https://kataleplus.com/api/v1/partner</code>.
+                    </div>
+                </div>
+
                 <div class="mb-3">
                     <label for="vendor-url" class="form-label">API base URL</label>
                     <input type="url" id="vendor-url" name="api_base_url" class="form-control"

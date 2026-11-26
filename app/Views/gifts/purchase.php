@@ -1,4 +1,4 @@
-<?= $this->extend('layouts/public') ?>
+<?= $this->extend(ui_layout('public')) ?>
 
 <?php
 $state    = $checkout['state'];

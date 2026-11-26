@@ -30,6 +30,20 @@ final class GiftModelsTest extends AppTestCase
         $this->assertSame('Acme Flowers', $gifts[1]['vendor_name']);
     }
 
+    public function testOrderableGiftsLeaveOutThoseBoughtWithTheGiftCart(): void
+    {
+        $ours    = $this->makeGift(['name' => 'Our e-card']);
+        $generic = $this->makeGift(['name' => 'Generic vendor gift', 'source' => GiftModel::SOURCE_VENDOR, 'vendor_id' => $this->makeVendor()['id'], 'vendor_product_ref' => 'G-1']);
+        $hosted  = $this->makeHostedGift(['name' => 'Katale bouquet']);
+
+        $names = array_column((new GiftModel())->orderable(), 'name');
+
+        $this->assertContains($ours['name'], $names);
+        $this->assertContains($generic['name'], $names, 'A generic REST vendor is still paid through us.');
+        $this->assertNotContains($hosted['name'], $names);
+        $this->assertContains($hosted['name'], array_column((new GiftModel())->active(), 'name'), 'active() still lists it: the gift page shows it in its own section.');
+    }
+
     public function testGiftsCanBeFilteredByTypeAmongActiveOnes(): void
     {
         $this->makeGift(['name' => 'Card', 'type' => 'ecard']);
