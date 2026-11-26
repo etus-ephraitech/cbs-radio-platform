@@ -125,17 +125,21 @@ class GiftModel extends Model
      * Gifts created directly on this platform — the only ones an admin
      * can hand-edit. Vendor-sourced gifts are managed by GiftVendorSyncService.
      */
-    public function localOnly(): array
+    public function localOnly(array $filters = []): array
     {
-        return $this->where('source', self::SOURCE_LOCAL)->orderBy('name', 'ASC')->findAll();
+        $this->applyAdminFilters($filters, 'gifts');
+
+        return $this->where('gifts.source', self::SOURCE_LOCAL)->orderBy('gifts.name', 'ASC')->findAll();
     }
 
     /**
      * Gifts pulled in from a vendor's API, with the vendor's name attached
      * for the admin listing.
      */
-    public function vendorSourced(): array
+    public function vendorSourced(array $filters = []): array
     {
+        $this->applyAdminFilters($filters, 'gifts');
+
         return $this->select('gifts.*, gift_vendors.name AS vendor_name')
             ->join('gift_vendors', 'gift_vendors.id = gifts.vendor_id')
             ->where('gifts.source', self::SOURCE_VENDOR)
@@ -153,5 +157,32 @@ class GiftModel extends Model
         return $this->where('vendor_id', $vendorId)
             ->where('vendor_product_ref', $vendorProductRef)
             ->first();
+    }
+
+    /**
+     * The admin catalogue's filters: a search over the name and description, the gift's type, whether it is
+     * active, and (for vendor gifts) which vendor.
+     *
+     * @param array<string, string> $f q, type, active ('1' or '0'), vendor (already checked by AdminFilters)
+     */
+    private function applyAdminFilters(array $f, string $table): void
+    {
+        if (($f['type'] ?? '') !== '') {
+            $this->where($table . '.type', $f['type']);
+        }
+
+        if (in_array($f['active'] ?? '', ['0', '1'], true)) {
+            $this->where($table . '.is_active', (int) $f['active']);
+        }
+
+        if (($f['vendor'] ?? '') !== '') {
+            $this->where($table . '.vendor_id', (int) $f['vendor']);
+        }
+
+        $q = $f['q'] ?? '';
+
+        if ($q !== '') {
+            $this->groupStart()->like($table . '.name', $q)->orLike($table . '.description', $q)->groupEnd();
+        }
     }
 }

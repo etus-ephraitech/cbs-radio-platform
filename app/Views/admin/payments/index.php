@@ -11,14 +11,19 @@
     'subtitle' => 'Mobile Money payments for bookings and gift orders, with a manual mark-as-paid fallback.',
 ]) ?>
 
-<div class="btn-group btn-group-sm mb-3">
-    <a href="<?= site_url('admin/payments') ?>" class="btn btn-outline-secondary <?= $status === null ? 'active' : '' ?>">All</a>
-    <a href="<?= site_url('admin/payments?status=pending') ?>" class="btn btn-outline-secondary <?= $status === 'pending' ? 'active' : '' ?>">Pending</a>
-    <a href="<?= site_url('admin/payments?status=success') ?>" class="btn btn-outline-secondary <?= $status === 'success' ? 'active' : '' ?>">Success</a>
-    <a href="<?= site_url('admin/payments?status=failed') ?>" class="btn btn-outline-secondary <?= $status === 'failed' ? 'active' : '' ?>">Failed</a>
-</div>
+<?= view_cell('App\Cells\FilterBar::render', [
+    'action' => 'admin/payments',
+    'fields' => [
+        ['name' => 'q', 'label' => 'Search', 'type' => 'search', 'placeholder' => 'Reference, provider or number'],
+        ['name' => 'status', 'label' => 'Status', 'type' => 'select', 'options' => ['pending' => 'Pending', 'success' => 'Success', 'failed' => 'Failed']],
+        ['name' => 'provider', 'label' => 'Provider', 'type' => 'select', 'options' => array_combine($providers, $providers)],
+        ['name' => 'from', 'label' => 'From', 'type' => 'date'],
+        ['name' => 'to', 'label' => 'To', 'type' => 'date'],
+    ],
+    'values' => $filters,
+]) ?>
 
-<table class="table table-sm table-hover bg-white align-middle" id="paymentsTable">
+<table class="table table-sm table-hover bg-white align-middle">
     <thead>
         <tr>
             <th>ID</th>
@@ -74,14 +79,9 @@
     </tbody>
 </table>
 
-<?= $this->endSection() ?>
+<div class="d-flex justify-content-between align-items-center mt-3 flex-wrap gap-2">
+    <span class="text-muted small"><?= (int) $total ?> in total</span>
+    <?= view_cell('App\Cells\Pagination::render', ['page' => $page, 'totalPages' => $totalPages, 'baseUrl' => 'admin/payments', 'query' => $filters]) ?>
+</div>
 
-<?= $this->section('scripts') ?>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/datatables/1.13.11/js/jquery.dataTables.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/datatables/1.13.11/js/dataTables.bootstrap5.min.js"></script>
-<script>
-$(function () {
-    $('#paymentsTable').DataTable({ order: [[0, 'desc']], columnDefs: [{ orderable: false, targets: -1 }] });
-});
-</script>
 <?= $this->endSection() ?>

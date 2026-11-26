@@ -32,3 +32,11 @@ Admin > Settings; each has "Reset to default"), applied by `App\Libraries\ThemeA
 `<html>` by the server, so there is no flash of the wrong theme. The theme's own floating switcher and the header
 light/dark toggle are hidden, and any per-browser theme state left by them is cleared on load, so the saved look
 always wins. It does not change the public website.
+
+## List filters
+
+Payments, Gift orders, Shop purchases and Gifts now have the same filter bar as Users (search, status, supplier or
+provider, and a from/to date range) and, apart from Gifts, the same paging, at "Rows per page in admin lists" from
+Admin > Settings. A filtered list can be bookmarked or shared. Everything in the query string is checked by
+`App\Libraries\AdminFilters` (choices must be on the list, dates must exist, text is capped), so an unknown value
+shows the whole list rather than an error. Bookings and the notifications log already had their own filters.

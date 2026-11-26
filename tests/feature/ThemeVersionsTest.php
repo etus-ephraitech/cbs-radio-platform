@@ -66,6 +66,7 @@ final class ThemeVersionsTest extends AppFeatureTestCase
             'admin/message-templates', 'admin/message-templates/create', 'admin/message-templates/{template}/edit',
             'admin/gifts', 'admin/gifts/create', 'admin/gifts/{gift}/edit',
             'admin/gift-vendors', 'admin/gift-vendors/create', 'admin/gift-vendors/{vendor}/edit',
+            'admin/gift-purchases', 'admin/users', 'admin/users/create', 'admin/branding', 'admin/appearance',
         ];
 
         return array_combine($paths, array_map(static fn (string $p) => [$p], $paths));

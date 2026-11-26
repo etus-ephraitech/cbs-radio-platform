@@ -2,10 +2,6 @@
 
 <?= $this->section('title') ?>Gift orders<?= $this->endSection() ?>
 
-<?= $this->section('head') ?>
-<link href="https://cdnjs.cloudflare.com/ajax/libs/datatables/1.13.11/css/dataTables.bootstrap5.min.css" rel="stylesheet">
-<?= $this->endSection() ?>
-
 <?= $this->section('content') ?>
 
 <?= view_cell('App\Cells\PageHeader::render', [
@@ -13,32 +9,33 @@
     'subtitle' => 'Paid orders are ready to fulfill. Vendor gifts are placed with the vendor when you fulfill them.',
 ]) ?>
 
-<?php
-$tabs = [
-    ''                => 'All',
-    'pending_payment' => 'Pending payment',
-    'paid'            => 'Paid',
-    'fulfilled'       => 'Fulfilled',
-    'cancelled'       => 'Cancelled',
-];
-?>
-
 <div class="card custom-card">
     <div class="card-header justify-content-between">
-        <div class="card-title">Gift orders</div>
-        <?= view(ui_view_path('admin/_partials/status_tabs'), ['tabs' => $tabs, 'current' => $status ?? '', 'baseUrl' => 'admin/gift-orders', 'label' => 'Filter gift orders by status'], ['saveData' => false, 'debug' => false]) ?>
+        <div class="card-title">Gift orders <span class="badge bg-primary-transparent rounded-pill ms-1 align-middle"><?= (int) $total ?></span></div>
     </div>
+
+    <?= view_cell('App\Cells\FilterBar::render', [
+        'action' => 'admin/gift-orders',
+        'fields' => [
+            ['name' => 'q', 'label' => 'Search', 'type' => 'search', 'placeholder' => 'Name, phone, gift or number'],
+            ['name' => 'status', 'label' => 'Status', 'type' => 'select', 'options' => ['pending_payment' => 'Pending payment', 'paid' => 'Paid', 'fulfilled' => 'Fulfilled', 'cancelled' => 'Cancelled']],
+            ['name' => 'source', 'label' => 'Gift from', 'type' => 'select', 'options' => ['local' => 'Our gifts', 'vendor' => 'Vendors']],
+            ['name' => 'from', 'label' => 'From', 'type' => 'date'],
+            ['name' => 'to', 'label' => 'To', 'type' => 'date'],
+        ],
+        'values' => $filters,
+    ]) ?>
 
     <?php if (empty($giftOrders)): ?>
         <div class="cbs-empty">
             <span class="avatar avatar-xl avatar-rounded bg-primary-transparent fs-3"><i class="ri-gift-line" aria-hidden="true"></i></span>
-            <h6>No gift orders here.</h6>
+            <h6>No gift orders match.</h6>
             <p class="mb-0 fs-13">Orders appear when listeners send a gift, with or without a greeting.</p>
         </div>
     <?php else: ?>
         <div class="card-body pt-0">
             <div class="table-responsive">
-                <table class="table table-hover text-nowrap mb-0 table-cbs" id="giftOrdersTable">
+                <table class="table table-hover text-nowrap mb-0 table-cbs">
                     <thead>
                         <tr>
                             <th>Ref</th>
@@ -87,9 +84,9 @@ $tabs = [
                                         <span class="text-muted">Standalone</span>
                                     <?php endif; ?>
                                 </td>
-                                <td class="text-end fw-semibold" data-order="<?= (float) $order['amount'] ?>"><?= cbs_money((float) $order['amount'], $order['currency']) ?></td>
+                                <td class="text-end fw-semibold"><?= cbs_money((float) $order['amount'], $order['currency']) ?></td>
                                 <td><?= view_cell('App\Cells\StatusBadge::render', ['type' => 'gift-order', 'status' => $order['status']]) ?></td>
-                                <td class="fs-13" data-order="<?= strtotime($order['created_at']) ?>"><?= view_cell('App\Cells\TimeAgo::render', ['datetime' => $order['created_at']]) ?></td>
+                                <td class="fs-13"><?= view_cell('App\Cells\TimeAgo::render', ['datetime' => $order['created_at']]) ?></td>
                                 <td class="text-end">
                                     <div class="d-inline-flex gap-1">
                                         <?php if ($order['status'] === 'paid'): ?>
@@ -133,18 +130,10 @@ $tabs = [
                 </table>
             </div>
         </div>
+        <div class="card-footer d-flex justify-content-end">
+            <?= view_cell('App\Cells\Pagination::render', ['page' => $page, 'totalPages' => $totalPages, 'baseUrl' => 'admin/gift-orders', 'query' => $filters]) ?>
+        </div>
     <?php endif; ?>
 </div>
 
-<?= $this->endSection() ?>
-
-<?= $this->section('scripts') ?>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/datatables/1.13.11/js/jquery.dataTables.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/datatables/1.13.11/js/dataTables.bootstrap5.min.js"></script>
-<script>
-// DataTables is progressive: without it (offline, CDN blocked) the table above is still complete and usable.
-if (window.jQuery && jQuery.fn.DataTable && document.getElementById('giftOrdersTable')) {
-    jQuery('#giftOrdersTable').DataTable({ order: [[7, 'desc']], columnDefs: [{ orderable: false, targets: -1 }] });
-}
-</script>
 <?= $this->endSection() ?>

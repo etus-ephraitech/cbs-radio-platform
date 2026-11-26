@@ -58,6 +58,67 @@ class PaymentModel extends Model
     }
 
     /**
+     * The admin list, newest first: filtered by status, provider, a created-between date range, and a search that
+     * matches the provider's reference, the provider name, or the payment / booking / gift order number.
+     *
+     * @param array<string, string> $filters q, status, provider, from, to (already checked by AdminFilters)
+     */
+    public function adminSearch(array $filters, int $limit, int $offset): array
+    {
+        $this->applyAdminFilters($filters);
+
+        return $this->orderBy('created_at', 'DESC')->orderBy('id', 'DESC')->findAll($limit, $offset);
+    }
+
+    public function adminCount(array $filters): int
+    {
+        $this->applyAdminFilters($filters);
+
+        return $this->countAllResults();
+    }
+
+    /**
+     * The providers that have taken a payment, for the filter's choices.
+     *
+     * @return list<string>
+     */
+    public function providers(): array
+    {
+        return array_column($this->select('provider')->distinct()->orderBy('provider', 'ASC')->findAll(), 'provider');
+    }
+
+    private function applyAdminFilters(array $f): void
+    {
+        if (($f['status'] ?? '') !== '') {
+            $this->where('status', $f['status']);
+        }
+
+        if (($f['provider'] ?? '') !== '') {
+            $this->where('provider', $f['provider']);
+        }
+
+        if (($f['from'] ?? '') !== '') {
+            $this->where('created_at >=', $f['from'] . ' 00:00:00');
+        }
+
+        if (($f['to'] ?? '') !== '') {
+            $this->where('created_at <=', $f['to'] . ' 23:59:59');
+        }
+
+        $q = $f['q'] ?? '';
+
+        if ($q !== '') {
+            $this->groupStart()->like('provider_reference', $q)->orLike('provider', $q);
+
+            if (ctype_digit($q)) {
+                $this->orWhere('id', (int) $q)->orWhere('booking_id', (int) $q)->orWhere('gift_order_id', (int) $q);
+            }
+
+            $this->groupEnd();
+        }
+    }
+
+    /**
      * Mark a payment successful from a Mobile Money callback.
      */
     public function markSuccess(int $paymentId, string $providerReference): bool

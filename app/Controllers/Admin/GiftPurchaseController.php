@@ -2,6 +2,8 @@
 
 namespace App\Controllers\Admin;
 
+use App\Libraries\AdminFilters;
+use App\Models\GiftVendorModel;
 use App\Models\VendorCheckoutModel;
 use App\Services\HostedCheckoutService;
 
@@ -23,12 +25,28 @@ class GiftPurchaseController extends BaseAdminController
 
     public function index()
     {
-        $state = $this->request->getGet('state');
-        $state = in_array($state, ['open', 'in_checkout', 'awaiting_payment', 'paid', 'cancelled', 'expired', 'failed'], true) ? $state : null;
+        $vendors = array_column((new GiftVendorModel())->orderBy('name', 'ASC')->findAll(), 'name', 'id');
+
+        $filters = AdminFilters::orderedRange(AdminFilters::read($this->request, [
+            'q'      => 'search',
+            'state'  => ['open', 'in_checkout', 'awaiting_payment', 'paid', 'cancelled', 'expired', 'failed'],
+            'vendor' => array_map('strval', array_keys($vendors)),
+            'from'   => 'date',
+            'to'     => 'date',
+        ]));
+
+        $perPage             = config('CbsRadio')->adminPageSize;
+        $total               = $this->checkoutModel->adminCount($filters);
+        [$page, $totalPages] = AdminFilters::page($this->request, $total, $perPage);
 
         return ui_view('admin/gift_purchases/index', [
-            'purchases' => $this->checkoutModel->adminList($state),
-            'state'     => $state,
+            'purchases'  => $this->checkoutModel->adminSearch($filters, $perPage, ($page - 1) * $perPage),
+            'vendors'    => $vendors,
+            'filters'    => $filters,
+            'state'      => $filters['state'] === '' ? null : $filters['state'],
+            'page'       => $page,
+            'totalPages' => $totalPages,
+            'total'      => $total,
         ]);
     }
 

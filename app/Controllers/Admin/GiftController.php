@@ -2,7 +2,9 @@
 
 namespace App\Controllers\Admin;
 
+use App\Libraries\AdminFilters;
 use App\Models\GiftModel;
+use App\Models\GiftVendorModel;
 use Config\CbsRadio;
 
 /**
@@ -27,9 +29,24 @@ class GiftController extends BaseAdminController
 
     public function index()
     {
+        $vendors = array_column((new GiftVendorModel())->orderBy('name', 'ASC')->findAll(), 'name', 'id');
+
+        $filters = AdminFilters::read($this->request, [
+            'q'      => 'search',
+            'type'   => ['ecard', 'airtime', 'shoutout', 'dedication', 'physical'],
+            'active' => ['1', '0'],
+            'vendor' => array_map('strval', array_keys($vendors)),
+        ]);
+
+        // Choosing a vendor means "show me that vendor's gifts", so our own are left out rather than shown as
+        // though they matched.
+        $localGifts = $filters['vendor'] === '' ? $this->giftModel->localOnly($filters) : [];
+
         return ui_view('admin/gifts/index', [
-            'localGifts'  => $this->giftModel->localOnly(),
-            'vendorGifts' => $this->giftModel->vendorSourced(),
+            'localGifts'  => $localGifts,
+            'vendorGifts' => $this->giftModel->vendorSourced($filters),
+            'vendors'     => $vendors,
+            'filters'     => $filters,
         ]);
     }
 
