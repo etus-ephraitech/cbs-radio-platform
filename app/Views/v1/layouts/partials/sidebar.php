@@ -25,6 +25,7 @@ $menu = [
     ['link' => 'admin/moderation', 'label' => 'Moderation queue', 'icon' => 'moderation'],
     ['link' => 'admin/payments', 'label' => 'Payments', 'icon' => 'payments'],
     ['link' => 'admin/gift-orders', 'label' => 'Gift orders', 'icon' => 'gift-orders'],
+    ['link' => 'admin/gift-purchases', 'label' => 'Shop purchases', 'icon' => 'gift-orders'],
     ['link' => 'admin/notifications', 'label' => 'Notifications', 'icon' => 'notifications'],
     ['link' => 'presenter', 'label' => 'Presenter portal', 'icon' => 'presenter'],
     ['category' => 'Catalog'],

@@ -24,7 +24,7 @@ final class RegistryTest extends UnitTestCase
     {
         $this->assertNotEmpty(Registry::definitions());
         $this->assertSame(
-            ['general', 'site', 'payments', 'notifications', 'templates', 'bookings'],
+            ['general', 'status', 'site', 'payments', 'notifications', 'templates', 'bookings'],
             array_keys(Registry::groups())
         );
     }
@@ -219,6 +219,28 @@ final class RegistryTest extends UnitTestCase
         ];
     }
 
+    public function testTheSiteStatusSettingsAreDeclaredAsTheFilterReadsThem(): void
+    {
+        $mode = Registry::definitions()['status.mode'];
+
+        $this->assertSame('select', $mode['type']);
+        $this->assertSame(['live', 'coming_soon', 'maintenance'], array_keys($mode['options']), 'These are the values App\\Filters\\SiteStatus and SiteStatusPage act on.');
+        $this->assertSame(['CbsRadio', 'siteMode'], $mode['target']);
+
+        $this->assertSame('datetime', Registry::definitions()['status.returnAt']['format']);
+        $this->assertSame(['CbsRadio', 'siteReturnAt'], Registry::definitions()['status.returnAt']['target']);
+        $this->assertSame(['CbsRadio', 'siteMessage'], Registry::definitions()['status.message']['target']);
+    }
+
+    public function testTheSiteIsLiveUnlessStaffSayOtherwise(): void
+    {
+        $config = new \Config\CbsRadio();
+
+        $this->assertSame('live', $config->siteMode);
+        $this->assertSame('', $config->siteMessage);
+        $this->assertSame('', $config->siteReturnAt);
+    }
+
     public function testToRawIsTheInverseOfCast(): void
     {
         $this->assertSame('1', Registry::toRaw(['type' => 'bool'], true));
@@ -251,6 +273,12 @@ final class RegistryTest extends UnitTestCase
             'text: line endings unified'   => [['type' => 'text'], "one\r\ntwo\rthree  ", "one\ntwo\nthree"],
             'currency is upper-cased'      => [['type' => 'string', 'format' => 'currency'], ' ugx ', 'UGX'],
             'strings are trimmed'          => [['type' => 'string'], "  hello \n", 'hello'],
+            'datetime: a browser picker value' => [['type' => 'string', 'format' => 'datetime'], '2026-12-01T09:00', '2026-12-01 09:00'],
+            'datetime: seconds are dropped'    => [['type' => 'string', 'format' => 'datetime'], '2026-12-01 09:00:30', '2026-12-01 09:00'],
+            'datetime: picker with seconds'    => [['type' => 'string', 'format' => 'datetime'], '2026-12-01T09:00:30', '2026-12-01 09:00'],
+            'datetime: trimmed'                => [['type' => 'string', 'format' => 'datetime'], '  2026-12-01 09:00 ', '2026-12-01 09:00'],
+            'datetime: empty stays empty'      => [['type' => 'string', 'format' => 'datetime'], '', ''],
+            'datetime: nonsense is left for validation' => [['type' => 'string', 'format' => 'datetime'], 'next friday', 'next friday'],
             'a non-scalar becomes empty'   => [['type' => 'string'], ['x'], ''],
         ];
     }

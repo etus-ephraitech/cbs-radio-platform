@@ -405,13 +405,49 @@ final class SettingsManagerTest extends AppTestCase
 
     // ------------------------------------------------------------------ the dashboard's configuration row
 
+    /**
+     * One row of the dashboard's configuration panel, found by name so that adding a row never moves the others.
+     *
+     * @return array<string, string>
+     */
+    private function healthRow(string $label): array
+    {
+        foreach ($this->manager->health() as $row) {
+            if ($row['label'] === $label) {
+                return $row;
+            }
+        }
+
+        $this->fail("The configuration panel has no '{$label}' row.");
+    }
+
     public function testHealthSaysManualPaymentsNeedStaffToConfirmEachOne(): void
     {
         config('Payments')->mode = 'manual';
 
-        $payments = $this->manager->health()[0];
+        $payments = $this->healthRow('Payments');
 
         $this->assertSame(['Payments', 'info', 'Manual — staff confirm each payment'], [$payments['label'], $payments['status'], $payments['detail']]);
+    }
+
+    public function testHealthSaysWhetherTheSiteIsOpen(): void
+    {
+        config('CbsRadio')->siteMode = 'live';
+        $this->assertSame(['ok', 'Live'], [$this->healthRow('Site')['status'], $this->healthRow('Site')['detail']]);
+
+        config('CbsRadio')->siteMode = 'maintenance';
+        $this->assertSame(['warn', 'Under maintenance: visitors cannot book'], [$this->healthRow('Site')['status'], $this->healthRow('Site')['detail']]);
+
+        config('CbsRadio')->siteMode = 'coming_soon';
+        $this->assertSame(['warn', 'Coming soon: visitors cannot book'], [$this->healthRow('Site')['status'], $this->healthRow('Site')['detail']]);
+
+        config('CbsRadio')->siteMode = 'something-mistyped';
+        $this->assertSame('ok', $this->healthRow('Site')['status'], 'An unrecognised value counts as live, never as closed.');
+    }
+
+    public function testTheSiteRowLinksToTheTabWhereItIsChanged(): void
+    {
+        $this->assertSame(site_url('admin/settings/status'), $this->healthRow('Site')['url']);
     }
 
     public function testHealthWarnsWhenOnlinePaymentsAreOnButNotSetUp(): void
@@ -421,42 +457,42 @@ final class SettingsManagerTest extends AppTestCase
         config('Payments')->mode     = 'mobile_money';
         config('Payments')->provider = 'mtn';
 
-        $this->assertSame('warn', $this->manager->health()[0]['status']);
+        $this->assertSame('warn', $this->healthRow('Payments')['status']);
 
         $this->setEnv('momo.apiKey', 'k');
         $this->setEnv('momo.apiSecret', 's');
 
-        $ok = $this->manager->health()[0];
+        $ok = $this->healthRow('Payments');
         $this->assertSame(['ok', 'Mobile Money (online)'], [$ok['status'], $ok['detail']]);
 
         config('Payments')->provider = '';
-        $this->assertSame('warn', $this->manager->health()[0]['status'], 'No provider chosen is not ready, whatever the credentials.');
+        $this->assertSame('warn', $this->healthRow('Payments')['status'], 'No provider chosen is not ready, whatever the credentials.');
     }
 
     public function testHealthReportsTheTextMessageGateway(): void
     {
         config('Notifications')->channelsEnabled['sms'] = false;
-        $this->assertSame(['SMS', 'info', 'Off'], array_values(array_intersect_key($this->manager->health()[1], array_flip(['label', 'status', 'detail']))));
+        $this->assertSame(['SMS', 'info', 'Off'], array_values(array_intersect_key($this->healthRow('SMS'), array_flip(['label', 'status', 'detail']))));
 
         config('Notifications')->channelsEnabled['sms'] = true;
         $this->setEnv('sms.apiKey', null);
-        $this->assertSame(['warn', 'On, but no gateway key in .env'], [$this->manager->health()[1]['status'], $this->manager->health()[1]['detail']]);
+        $this->assertSame(['warn', 'On, but no gateway key in .env'], [$this->healthRow('SMS')['status'], $this->healthRow('SMS')['detail']]);
 
         $this->setEnv('sms.apiKey', 'abc');
-        $this->assertSame(['ok', 'On'], [$this->manager->health()[1]['status'], $this->manager->health()[1]['detail']]);
+        $this->assertSame(['ok', 'On'], [$this->healthRow('SMS')['status'], $this->healthRow('SMS')['detail']]);
     }
 
     public function testHealthReportsEmail(): void
     {
         config('Notifications')->channelsEnabled['email'] = true;
         $this->setEnv('email.SMTPHost', null);
-        $this->assertSame(['warn', 'On, but no SMTP host in .env'], [$this->manager->health()[2]['status'], $this->manager->health()[2]['detail']]);
+        $this->assertSame(['warn', 'On, but no SMTP host in .env'], [$this->healthRow('Email')['status'], $this->healthRow('Email')['detail']]);
 
         $this->setEnv('email.SMTPHost', 'smtp.example.test');
-        $this->assertSame('ok', $this->manager->health()[2]['status']);
+        $this->assertSame('ok', $this->healthRow('Email')['status']);
 
         config('Notifications')->channelsEnabled['email'] = false;
-        $this->assertSame('info', $this->manager->health()[2]['status']);
+        $this->assertSame('info', $this->healthRow('Email')['status']);
     }
 
     // ------------------------------------------------------------------ the cache

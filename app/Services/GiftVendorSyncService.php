@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-use App\Libraries\VendorGiftClients\GenericRestVendorClient;
+use App\Libraries\VendorGiftClients\VendorClients;
 use App\Libraries\VendorGiftClients\VendorGiftClientInterface;
 use App\Models\GiftModel;
 use App\Models\GiftVendorModel;
@@ -50,15 +50,13 @@ class GiftVendorSyncService
      */
     protected function vendorClient(array $vendor): VendorGiftClientInterface
     {
-        return new GenericRestVendorClient($vendor);
+        return VendorClients::for($vendor);
     }
 
     protected function syncVendor(array $vendor): int
     {
-        // Every vendor currently uses the generic REST client. If a
-        // vendor's API needs its own implementation, branch on
-        // $vendor['slug'] here to pick a different
-        // VendorGiftClientInterface implementation.
+        // Which client speaks to this vendor is its `driver` (see VendorClients). A client may throw when the
+        // vendor cannot be read (Katale does, so that a half-read catalogue is a failed sync); syncAll() reports it.
         $client  = $this->vendorClient($vendor);
         $catalog = $client->fetchCatalog();
         $count   = 0;
@@ -77,6 +75,18 @@ class GiftVendorSyncService
                 'vendor_product_ref' => $item['vendor_product_ref'],
                 'synced_at'          => date('Y-m-d H:i:s'),
             ];
+
+            // What only some vendors report: a picture, the preparation time and the units left. Written only when
+            // the vendor sent it, so a vendor that does not report them never blanks what is already there.
+            foreach (['image_url', 'minimum_delivery_hours'] as $optional) {
+                if (array_key_exists($optional, $item)) {
+                    $data[$optional] = $item[$optional];
+                }
+            }
+
+            if (array_key_exists('stock', $item)) {
+                $data['stock_available'] = (int) $item['stock'];
+            }
 
             if ($existing !== null) {
                 // Deliberately does NOT touch is_active — an admin may have

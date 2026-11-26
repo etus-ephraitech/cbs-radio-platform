@@ -5,6 +5,7 @@ namespace Tests\Support\TestCase;
 use CodeIgniter\Config\Factories;
 use CodeIgniter\Test\FeatureTestTrait;
 use Config\Filters as FiltersConfig;
+use Config\Services;
 use Tests\Support\Filters\ActAsStaff;
 
 /**
@@ -19,7 +20,9 @@ use Tests\Support\Filters\ActAsStaff;
  */
 abstract class AppFeatureTestCase extends AppTestCase
 {
-    use FeatureTestTrait;
+    use FeatureTestTrait {
+        call as private callThroughTheFramework;
+    }
 
     protected function setUp(): void
     {
@@ -31,6 +34,24 @@ abstract class AppFeatureTestCase extends AppTestCase
     protected function afterConfigReload(): void
     {
         $this->installTestFilters();
+    }
+
+    /**
+     * Every request starts with a fresh response and a fresh view renderer, as it does for a real visitor.
+     *
+     * The framework keeps one shared response object and one shared renderer. In production they live for a single
+     * request, but in a test they would carry the headers of the previous request, and the variables it gave its
+     * view, into the next (even from the previous test), so a page could seem to send a header it never set, or lose
+     * its navigation. get(), post() and the rest all come through here.
+     *
+     * @return \CodeIgniter\Test\TestResponse
+     */
+    public function call(string $method, string $path, ?array $params = null)
+    {
+        Services::resetSingle('response');
+        Services::resetSingle('renderer');
+
+        return $this->callThroughTheFramework($method, $path, $params);
     }
 
     /**

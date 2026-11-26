@@ -20,8 +20,15 @@
  * alongside 'auth' in the same array — see the commented example under
  * the admin group.
  *
+ * Every PUBLIC route below carries the SiteStatus filter, so the whole public site closes together when staff
+ * set it to coming soon or under maintenance (Admin > Settings > Site status). A new public route belongs in a
+ * group that carries it. The Mobile Money callback, the presenter portal and the admin area are deliberately
+ * without it: a provider cannot be told to wait, and staff must be able to switch the site back on.
+ *
  * @var \CodeIgniter\Router\RouteCollection $routes
  */
+
+use App\Filters\SiteStatus;
 
 // ---------------------------------------------------------------------
 // Public: the homepage (LandingController).
@@ -32,12 +39,12 @@
 // that line must be DELETED or the framework's welcome page will keep
 // answering at "/" and this route will never run. See the README, step 2.
 // ---------------------------------------------------------------------
-$routes->get('/', 'LandingController::index');
+$routes->get('/', 'LandingController::index', ['filter' => SiteStatus::class]);
 
 // ---------------------------------------------------------------------
 // Public: booking flow (BookingController) — Dev A's area
 // ---------------------------------------------------------------------
-$routes->group('booking', static function ($routes) {
+$routes->group('booking', ['filter' => SiteStatus::class], static function ($routes) {
     $routes->get('/', 'BookingController::index');
     $routes->post('/', 'BookingController::store');
     $routes->get('(:num)/pay', 'BookingController::pay/$1');
@@ -52,9 +59,17 @@ $routes->group('booking', static function ($routes) {
 // ---------------------------------------------------------------------
 // Public: digital gifts flow (GiftOrderController) — Dev B's area
 // ---------------------------------------------------------------------
-$routes->group('gifts', static function ($routes) {
+$routes->group('gifts', ['filter' => SiteStatus::class], static function ($routes) {
     $routes->get('/', 'GiftOrderController::index');
     $routes->post('/', 'GiftOrderController::store');
+    // The gift cart and hosted checkout (partner shop gifts, paid on the shop's own page). Declared before the
+    // numeric routes below; none of these paths can match (:num).
+    $routes->get('cart', 'GiftCartController::show');
+    $routes->post('cart/add', 'GiftCartController::add');
+    $routes->post('cart/update', 'GiftCartController::update');
+    $routes->post('cart/remove/(:num)', 'GiftCartController::remove/$1');
+    $routes->post('checkout', 'GiftCartController::checkout');
+    $routes->get('checkout/(:segment)', 'GiftCartController::purchase/$1');
     $routes->get('(:num)/pay', 'GiftOrderController::pay/$1');
     $routes->get('(:num)/confirmation', 'GiftOrderController::confirmation/$1');
 });
@@ -94,6 +109,7 @@ $routes->group('admin', ['filter' => 'auth:session'], static function ($routes) 
     $routes->group('settings', static function ($routes) {
         $routes->get('/', 'Admin\SettingController::index');
         $routes->post('test/(:segment)', 'Admin\SettingController::sendTest/$1');
+        $routes->get('preview/(:segment)', 'Admin\SettingController::previewStatus/$1');
         $routes->get('(:segment)', 'Admin\SettingController::show/$1');
         $routes->post('(:segment)', 'Admin\SettingController::save/$1');
     });
@@ -117,6 +133,14 @@ $routes->group('admin', ['filter' => 'auth:session'], static function ($routes) 
     $routes->group('payments', static function ($routes) {
         $routes->get('/', 'Admin\PaymentController::index');
         $routes->post('(:num)/mark-manual', 'Admin\PaymentController::markManual/$1');
+    });
+
+    // What visitors bought through a partner shop's hosted checkout (they pay the shop, so this is read-only
+    // apart from asking the shop again).
+    $routes->group('gift-purchases', static function ($routes) {
+        $routes->get('/', 'Admin\GiftPurchaseController::index');
+        $routes->get('(:num)', 'Admin\GiftPurchaseController::show/$1');
+        $routes->post('(:num)/refresh', 'Admin\GiftPurchaseController::refresh/$1');
     });
 
     $routes->group('gift-orders', static function ($routes) {

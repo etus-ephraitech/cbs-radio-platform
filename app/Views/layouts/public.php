@@ -14,10 +14,15 @@
  *                 components and use Toastr for messages. Content sits in a
  *                 centred container.
  *
- * Optional view variables: $fullTitle, $pageTitle, $metaDescription.
+ * Optional view variables: $fullTitle, $pageTitle, $metaDescription, and for the coming soon / maintenance page
+ * (site_status): $minimal (no navigation and no links to pages that are closed) and $noindex (tell search engines
+ * to leave the page out).
  */
 $cbs   = config('CbsRadio');
 $lean  = $lean ?? false;
+$minimal = $minimal ?? false;
+// A staging copy (app.environmentLabel) is never indexed, whatever the page asks for.
+$noindex = ($noindex ?? false) || cbs_environment_label() !== '';
 $title = $fullTitle ?? (isset($pageTitle) ? $pageTitle . ' — CBS Radio' : 'CBS Radio');
 $desc  = $metaDescription ?? '';
 $home  = site_url('/');
@@ -35,23 +40,25 @@ $notice = array_filter([
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <?php if ($noindex): ?>
+        <meta name="robots" content="noindex, nofollow">
+    <?php endif; ?>
     <title><?= esc($title) ?></title>
     <?php if ($desc !== ''): ?>
         <meta name="description" content="<?= esc($desc) ?>">
     <?php endif; ?>
     <meta name="theme-color" content="#0E1B3D">
-    <?php if (cbs_environment_label() !== ''): ?>
-        <meta name="robots" content="noindex, nofollow">
-    <?php endif; ?>
-    <link rel="canonical" href="<?= esc(current_url()) ?>">
+    <?php if (! $noindex): ?>
+        <link rel="canonical" href="<?= esc(current_url()) ?>">
 
-    <meta property="og:type" content="website">
-    <meta property="og:site_name" content="CBS Radio">
-    <meta property="og:title" content="<?= esc($title) ?>">
-    <?php if ($desc !== ''): ?>
-        <meta property="og:description" content="<?= esc($desc) ?>">
+        <meta property="og:type" content="website">
+        <meta property="og:site_name" content="CBS Radio">
+        <meta property="og:title" content="<?= esc($title) ?>">
+        <?php if ($desc !== ''): ?>
+            <meta property="og:description" content="<?= esc($desc) ?>">
+        <?php endif; ?>
+        <meta property="og:url" content="<?= esc(current_url()) ?>">
     <?php endif; ?>
-    <meta property="og:url" content="<?= esc(current_url()) ?>">
 
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230E1B3D'/%3E%3Ccircle cx='16' cy='17' r='4' fill='%23D62828'/%3E%3Cpath d='M8 17a8 8 0 0 1 16 0M4 17a12 12 0 0 1 24 0' fill='none' stroke='%23F5A800' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E">
 
@@ -115,6 +122,8 @@ $notice = array_filter([
         /* ---------- announcement ---------- */
         .cbs-announce { background: var(--gold); color: var(--ink); text-align: center; font-weight: 700;
             padding: .6rem 1.25rem; font-size: .975rem; line-height: 1.4; }
+        .cbs-announce--staff { background: var(--lamp); color: #fff; }
+        .cbs-announce--staff a { color: #fff; margin-left: .5rem; text-underline-offset: 3px; }
 
         /* ---------- header ---------- */
         .cbs-header { background: var(--ink); color: #fff; }
@@ -190,23 +199,34 @@ $notice = array_filter([
     <a class="skip-link" href="#main">Skip to content</a>
     <?= cbs_environment_banner() ?>
 
-    <?php if ($cbs->announcement !== ''): ?>
+    <?php if ($cbs->announcement !== '' && ! $minimal): ?>
         <div class="cbs-announce" role="note"><?= esc($cbs->announcement) ?></div>
+    <?php endif; ?>
+    <?php if (! $minimal && \App\Libraries\SiteStatusPage::closes($cbs->siteMode)): ?>
+        <?php /* Only staff can reach a public page while it is closed to visitors, so this is only ever seen by them. */ ?>
+        <div class="cbs-announce cbs-announce--staff" role="note">
+            Staff view: the site is
+            <?= $cbs->siteMode === 'maintenance' ? 'under maintenance' : 'set to coming soon' ?>
+            and visitors cannot see this page.
+            <a href="<?= site_url('admin/settings/status') ?>">Change</a>
+        </div>
     <?php endif; ?>
 
     <header class="cbs-header">
         <div class="cbs-wrap">
             <a class="cbs-brand" href="<?= esc($home) ?>"><span class="cbs-lamp" aria-hidden="true"></span>CBS Radio</a>
 
-            <button class="cbs-menu-btn" id="menuBtn" type="button" aria-expanded="false" aria-controls="siteNav">Menu</button>
+            <?php if (! $minimal): ?>
+                <button class="cbs-menu-btn" id="menuBtn" type="button" aria-expanded="false" aria-controls="siteNav">Menu</button>
 
-            <nav class="cbs-nav" id="siteNav" aria-label="Main">
-                <a href="<?= esc($home) ?>#greetings">Greetings</a>
-                <a href="<?= esc($home) ?>#how">How it works</a>
-                <a href="<?= esc($home) ?>#gifts">Gifts</a>
-                <a href="<?= esc($home) ?>#faq">Questions</a>
-                <a class="cbs-btn cbs-btn--gold" href="<?= site_url('booking') ?>">Send a greeting</a>
-            </nav>
+                <nav class="cbs-nav" id="siteNav" aria-label="Main">
+                    <a href="<?= esc($home) ?>#greetings">Greetings</a>
+                    <a href="<?= esc($home) ?>#how">How it works</a>
+                    <a href="<?= esc($home) ?>#gifts">Gifts</a>
+                    <a href="<?= esc($home) ?>#faq">Questions</a>
+                    <a class="cbs-btn cbs-btn--gold" href="<?= site_url('booking') ?>">Send a greeting</a>
+                </nav>
+            <?php endif; ?>
         </div>
     </header>
 
@@ -221,19 +241,21 @@ $notice = array_filter([
     <?php endif; ?>
 
     <footer class="cbs-footer">
-        <div class="cbs-wrap<?= $hasContact ? '' : ' cbs-wrap--two' ?>">
+        <div class="cbs-wrap<?= ($hasContact && ! $minimal) ? '' : ' cbs-wrap--two' ?>">
             <div>
                 <a class="cbs-brand" href="<?= esc($home) ?>"><span class="cbs-lamp" aria-hidden="true"></span>CBS Radio</a>
                 <p>Greetings, tributes and gifts, read out live on CBS Radio.</p>
             </div>
-            <div>
-                <h2>Send</h2>
-                <ul>
-                    <li><a href="<?= site_url('booking') ?>">A greeting</a></li>
-                    <li><a href="<?= site_url('gifts') ?>">A gift</a></li>
-                    <li><a href="<?= esc($home) ?>#faq">Questions and answers</a></li>
-                </ul>
-            </div>
+            <?php if (! $minimal): ?>
+                <div>
+                    <h2>Send</h2>
+                    <ul>
+                        <li><a href="<?= site_url('booking') ?>">A greeting</a></li>
+                        <li><a href="<?= site_url('gifts') ?>">A gift</a></li>
+                        <li><a href="<?= esc($home) ?>#faq">Questions and answers</a></li>
+                    </ul>
+                </div>
+            <?php endif; ?>
             <?php if ($hasContact): ?>
                 <div>
                     <h2>Get in touch</h2>

@@ -36,13 +36,14 @@
         <div class="table-responsive">
             <table class="table table-hover text-nowrap mb-0 table-cbs">
                 <thead>
-                    <tr><th>Name</th><th>Slug</th><th>API base URL</th><th>Status</th><th class="text-end">Actions</th></tr>
+                    <tr><th>Name</th><th>Slug</th><th>Integration</th><th>API base URL</th><th>Status</th><th class="text-end">Actions</th></tr>
                 </thead>
                 <tbody>
                     <?php foreach ($vendors as $vendor): ?>
                         <tr>
                             <td class="fw-semibold"><?= esc($vendor['name']) ?></td>
                             <td><code><?= esc($vendor['slug']) ?></code></td>
+                            <td class="fs-13"><?= $vendor['driver'] === 'katale' ? 'Katale Plus (gift cart)' : 'Generic REST' ?></td>
                             <td class="text-muted fs-13"><?= esc($vendor['api_base_url'] ?: '—') ?></td>
                             <td><?= view_cell('App\Cells\StatusBadge::render', ['type' => 'active', 'status' => $vendor['is_active']]) ?></td>
                             <td class="text-end">

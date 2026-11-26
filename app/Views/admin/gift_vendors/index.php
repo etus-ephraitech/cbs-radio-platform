@@ -17,16 +17,17 @@
 
 <table class="table table-sm table-hover bg-white align-middle">
     <thead>
-        <tr><th>Name</th><th>Slug</th><th>API base URL</th><th>Status</th><th class="text-end">Actions</th></tr>
+        <tr><th>Name</th><th>Slug</th><th>Integration</th><th>API base URL</th><th>Status</th><th class="text-end">Actions</th></tr>
     </thead>
     <tbody>
         <?php if (empty($vendors)): ?>
-            <tr><td colspan="5" class="text-muted">No vendors yet.</td></tr>
+            <tr><td colspan="6" class="text-muted">No vendors yet.</td></tr>
         <?php endif; ?>
         <?php foreach ($vendors as $vendor): ?>
             <tr>
                 <td><?= esc($vendor['name']) ?></td>
                 <td><code><?= esc($vendor['slug']) ?></code></td>
+                <td class="small"><?= $vendor['driver'] === 'katale' ? 'Katale Plus (gift cart)' : 'Generic REST' ?></td>
                 <td class="small text-muted"><?= esc($vendor['api_base_url'] ?: '—') ?></td>
                 <td><?= view_cell('App\Cells\StatusBadge::render', ['type' => 'active', 'status' => $vendor['is_active']]) ?></td>
                 <td class="text-end text-nowrap">

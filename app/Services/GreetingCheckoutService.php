@@ -150,6 +150,11 @@ class GreetingCheckoutService
                 return $this->rejected('A gift you chose is no longer available. Please choose another.');
             }
 
+            // A gift from a hosted-checkout vendor (Katale) is bought through the gift cart, never inside a greeting.
+            if ($this->giftModel->hostedByIds([$giftId]) !== []) {
+                return $this->rejected($gift['name'] . ' is bought from the gift shop and can\'t be added to a greeting.');
+            }
+
             if ($currency !== null && $gift['currency'] !== $currency) {
                 return $this->rejected($gift['name'] . ' is priced in ' . $gift['currency'] . ' and can\'t be paid together with this package.');
             }

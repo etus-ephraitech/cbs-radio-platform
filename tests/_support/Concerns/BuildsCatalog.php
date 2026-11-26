@@ -8,6 +8,7 @@ use App\Models\GiftModel;
 use App\Models\GiftOrderModel;
 use App\Models\GiftVendorModel;
 use App\Models\PaymentModel;
+use App\Models\VendorCheckoutModel;
 use App\Models\RateTierModel;
 use App\Models\ShowModel;
 use CodeIgniter\Model;
@@ -92,6 +93,61 @@ trait BuildsCatalog
             'slug'         => "vendor-{$n}",
             'api_base_url' => 'https://vendor.example.test/api',
             'is_active'    => 1,
+        ]);
+    }
+
+    /**
+     * A Katale vendor: hosted checkout, key read from vendor.katale.apiKey.
+     */
+    protected function makeKatale(array $overrides = []): array
+    {
+        return $this->makeVendor($overrides + [
+            'name'         => 'Katale',
+            'slug'         => 'katale',
+            'driver'       => GiftVendorModel::DRIVER_KATALE,
+            'api_base_url' => 'https://kataleplus.example.test/api/v1/partner',
+        ]);
+    }
+
+    /**
+     * A gift from a hosted-checkout vendor (made one if none is given).
+     */
+    protected function makeHostedGift(array $overrides = []): array
+    {
+        $n = $this->sequence();
+
+        return $this->makeGift($overrides + [
+            'name'                   => "Flower Bouquet {$n}",
+            'type'                   => 'physical',
+            'price'                  => 45000,
+            'source'                 => GiftModel::SOURCE_VENDOR,
+            'vendor_id'              => $overrides['vendor_id'] ?? $this->makeKatale()['id'],
+            'vendor_product_ref'     => (string) (100 + $n),
+            'minimum_delivery_hours' => 24,
+            'stock_available'        => 10,
+        ]);
+    }
+
+    /**
+     * A purchase made through a hosted checkout, as it is once the vendor has opened a session.
+     */
+    protected function makeCheckout(array $overrides = []): array
+    {
+        $n     = $this->sequence();
+        $token = str_pad(dechex($n), 32, 'a', STR_PAD_LEFT);
+
+        return $this->insertRow(new VendorCheckoutModel(), $overrides + [
+            'vendor_id'          => $overrides['vendor_id'] ?? $this->makeKatale()['id'],
+            'public_token'       => $token,
+            'purchase_reference' => 'CBSG-TEST' . $n,
+            'idempotency_key'    => 'cbsg-' . $token,
+            'items'              => json_encode([['gift_id' => 123, 'inventory_id' => 456, 'quantity' => 2, 'title' => 'Flower Bouquet', 'unit_price' => 45000.0, 'line_total' => 90000.0]]),
+            'estimate_total'     => 90000,
+            'currency'           => 'UGX',
+            'state'              => VendorCheckoutModel::STATE_OPEN,
+            'paid'               => 0,
+            'session_id'         => '9b0f7ac0-34e8-4f2c-8d27-1f5c9e6a023b',
+            'checkout_url'       => 'https://kataleplus.example.test/partner-checkout/TOKEN',
         ]);
     }
 

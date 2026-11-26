@@ -78,7 +78,7 @@ class BookingController extends BaseController
                 (new MessageTemplateModel())->forCategory((int) $category['id'])
             ),
             // Gifts that can ride along with the greeting and be paid for in the same payment.
-            'gifts'           => (new GiftModel())->active(),
+            'gifts'           => (new GiftModel())->orderable(),
             'giftMaxQuantity' => GreetingCheckoutService::MAX_QUANTITY,
             'giftMaxCount'    => GreetingCheckoutService::MAX_GIFTS,
         ]);

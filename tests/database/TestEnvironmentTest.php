@@ -31,7 +31,7 @@ final class TestEnvironmentTest extends AppTestCase
     {
         foreach (
             ['bookings', 'categories', 'rate_tiers', 'shows', 'show_slots', 'gifts', 'gift_orders', 'gift_vendors',
-            'payments', 'notifications_log', 'moderation_logs', 'settings', 'setting_changes', 'message_templates'] as $table
+            'payments', 'notifications_log', 'moderation_logs', 'settings', 'setting_changes', 'message_templates', 'vendor_checkouts'] as $table
         ) {
             $this->assertTrue($this->db->tableExists($table), "Table {$table} is missing: did the migrations run?");
         }

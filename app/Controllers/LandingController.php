@@ -176,7 +176,7 @@ class LandingController extends BaseController
      */
     protected function featuredGifts(): array
     {
-        $gifts = (new GiftModel())->active();
+        $gifts = (new GiftModel())->orderable();
 
         usort($gifts, static fn (array $a, array $b) => [$a['source'] === 'local' ? 0 : 1, (float) $a['price']]
             <=> [$b['source'] === 'local' ? 0 : 1, (float) $b['price']]);

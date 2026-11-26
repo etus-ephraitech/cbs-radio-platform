@@ -3,7 +3,9 @@
  * Sending a gift on its own, or adding one to a greeting already made (?booking_id=). A gift chosen inside the
  * greeting form doesn't come here: it is part of that greeting's checkout.
  *
- * @var list<array<string, mixed>> $gifts
+ * @var list<array<string, mixed>> $gifts       gifts ordered with the form below
+ * @var list<array<string, mixed>> $hostedGifts gifts from a partner shop with its own checkout (Katale), bought with the cart
+ * @var int                        $cartCount
  * @var int|string|null            $bookingId
  */
 $this->setVar('lean', true);
@@ -15,6 +17,8 @@ $asset   = static fn (string $path): string => base_url($path) . (is_file(FCPATH
 $errors  = (array) (session('errors') ?? []);
 $oldGift = (string) old('gift_id');
 $tick    = cbs_icon_svg('check', .95);
+$hostedGifts = $hostedGifts ?? [];
+$cartCount   = (int) ($cartCount ?? 0);
 ?>
 <?= $this->extend(ui_layout('public')) ?>
 
@@ -45,7 +49,7 @@ $tick    = cbs_icon_svg('check', .95);
             </div>
         <?php endif; ?>
 
-        <?php if (empty($gifts)): ?>
+        <?php if (empty($gifts) && empty($hostedGifts)): ?>
             <div class="ck-card ck-card--pad">
                 <div class="ck-empty">
                     <span class="ck-art ck-art--navy"><?= cbs_icon_svg('gift') ?></span>
@@ -54,7 +58,9 @@ $tick    = cbs_icon_svg('check', .95);
                     <a class="ck-btn ck-btn--ink" href="<?= site_url('booking') ?>">Send a greeting instead</a>
                 </div>
             </div>
-        <?php else: ?>
+        <?php endif; ?>
+
+        <?php if (! empty($gifts)): ?>
             <form action="<?= site_url('gifts') ?>" method="post" id="giftForm" class="ck-layout">
                 <?= csrf_field() ?>
                 <div class="ck-main">
@@ -151,6 +157,67 @@ $tick    = cbs_icon_svg('check', .95);
                     </div>
                 </aside>
             </form>
+        <?php endif; ?>
+
+        <?php if (! empty($hostedGifts)): ?>
+            <section class="ck-panel" id="shopGifts" aria-labelledby="shopGiftsTitle"<?= empty($gifts) ? '' : ' style="margin-top:1.5rem"' ?>>
+                <div class="ck-panel-head">
+                    <span class="ck-art ck-art--red" aria-hidden="true"><?= cbs_icon_svg('truck') ?></span>
+                    <div>
+                        <h2 id="shopGiftsTitle">Gifts delivered to their door</h2>
+                        <p>From our partner shop. Add as many as you like, then give the delivery address, pick the arrival dates and pay on the shop's secure page.</p>
+                    </div>
+                    <?php if ($cartCount > 0): ?>
+                        <a class="ck-btn ck-btn--gold" href="<?= site_url('gifts/cart') ?>">View cart (<?= esc($cartCount) ?>)</a>
+                    <?php endif; ?>
+                </div>
+
+                <div class="ck-gifts">
+                    <?php foreach ($hostedGifts as $gift): ?>
+                        <?php
+                        $stock      = $gift['stock_available'] ?? null;
+                        $outOfStock = $stock !== null && (int) $stock === 0;
+                        $maxQty     = $stock !== null ? min((int) $stock, 100) : 100;
+                        ?>
+                        <div class="ck-gift">
+                            <?php if (! empty($gift['image_url'])): ?>
+                                <img src="<?= esc($gift['image_url'], 'attr') ?>" alt="<?= esc($gift['name'], 'attr') ?>" loading="lazy"
+                                     style="width:100%;height:11rem;object-fit:cover;border-radius:.6rem">
+                            <?php endif; ?>
+                            <div class="ck-gift-top">
+                                <?php if (empty($gift['image_url'])): ?>
+                                    <span class="ck-art ck-art--red" aria-hidden="true"><?= cbs_icon_svg('truck') ?></span>
+                                <?php endif; ?>
+                                <div>
+                                    <h3 class="ck-gift-name"><?= esc($gift['name']) ?></h3>
+                                    <p class="ck-gift-kind">Delivered gift<?= ! empty($gift['vendor_name']) ? ' · from ' . esc($gift['vendor_name']) : '' ?></p>
+                                </div>
+                            </div>
+                            <?php if (! empty($gift['description'])): ?>
+                                <p class="ck-gift-desc"><?= esc(cbs_excerpt($gift['description'], 110)) ?></p>
+                            <?php endif; ?>
+                            <?php if (($gift['minimum_delivery_hours'] ?? null) !== null): ?>
+                                <p class="ck-gift-kind">Needs at least <?= esc($gift['minimum_delivery_hours']) ?> hours' notice.</p>
+                            <?php endif; ?>
+                            <div class="ck-gift-foot">
+                                <span class="ck-gift-price"><?= cbs_money((float) $gift['price'], $gift['currency']) ?></span>
+                                <?php if ($outOfStock): ?>
+                                    <span class="ck-pill ck-pill--stop">Out of stock</span>
+                                <?php else: ?>
+                                    <form action="<?= site_url('gifts/cart/add') ?>" method="post" style="display:flex;gap:.5rem;align-items:center">
+                                        <?= csrf_field() ?>
+                                        <input type="hidden" name="gift_id" value="<?= esc($gift['id'], 'attr') ?>">
+                                        <label class="ck-sr" for="shopQty<?= esc($gift['id'], 'attr') ?>">Quantity of <?= esc($gift['name']) ?></label>
+                                        <input type="number" name="quantity" id="shopQty<?= esc($gift['id'], 'attr') ?>" class="ck-input"
+                                               style="width:4.5rem" min="1" max="<?= esc($maxQty, 'attr') ?>" value="1">
+                                        <button type="submit" class="ck-btn ck-btn--ink" style="display:inline-flex">Add to cart</button>
+                                    </form>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            </section>
         <?php endif; ?>
     </div>
 </div>

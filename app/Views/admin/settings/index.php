@@ -82,6 +82,32 @@ $show = static function (string $type, ?string $value): string {
             </div>
         <?php endif; ?>
 
+        <?php if ($group === 'status'): ?>
+            <div class="card mb-3">
+                <div class="card-body small">
+                    <h2 class="h6">Preview</h2>
+                    <p class="text-muted">
+                        See the page exactly as visitors will, using the settings as last saved. Staff can always see the
+                        real site, so this is the only way to check these pages before switching one on.
+                    </p>
+                    <div class="d-grid gap-2">
+                        <a class="btn btn-sm btn-outline-secondary" target="_blank" rel="noopener" href="<?= site_url('admin/settings/preview/coming_soon') ?>">Preview the coming soon page &nearr;</a>
+                        <a class="btn btn-sm btn-outline-secondary" target="_blank" rel="noopener" href="<?= site_url('admin/settings/preview/maintenance') ?>">Preview the maintenance page &nearr;</a>
+                    </div>
+                </div>
+            </div>
+            <div class="card mb-3">
+                <div class="card-body small">
+                    <h2 class="h6">What stays working</h2>
+                    <ul class="mb-0 ps-3">
+                        <li>The admin area and the presenter portal, so staff can still work and switch the site back on.</li>
+                        <li>Payment confirmations from the Mobile Money provider, so a payment made just before you closed the site is still recorded.</li>
+                        <li>Anyone signed in as staff sees the whole public site, with a red banner as a reminder.</li>
+                    </ul>
+                </div>
+            </div>
+        <?php endif; ?>
+
         <?php if ($group === 'notifications'): ?>
             <div class="card mb-3">
                 <div class="card-body small">

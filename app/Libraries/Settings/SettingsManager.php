@@ -234,7 +234,14 @@ class SettingsManager
             ? ($this->envConfigured('email.SMTPHost') ? ['ok', 'On'] : ['warn', 'On, but no SMTP host in .env'])
             : ['info', 'Off'];
 
+        $site = match (config('CbsRadio')->siteMode) {
+            'maintenance' => ['warn', 'Under maintenance: visitors cannot book'],
+            'coming_soon' => ['warn', 'Coming soon: visitors cannot book'],
+            default       => ['ok', 'Live'],
+        };
+
         return [
+            ['label' => 'Site', 'status' => $site[0], 'detail' => $site[1], 'url' => site_url('admin/settings/status')],
             ['label' => 'Payments', 'status' => $pay[0], 'detail' => $pay[1], 'url' => site_url('admin/settings/payments')],
             ['label' => 'SMS', 'status' => $sms[0], 'detail' => $sms[1], 'url' => site_url('admin/settings/notifications')],
             ['label' => 'Email', 'status' => $email[0], 'detail' => $email[1], 'url' => site_url('admin/settings/notifications')],
@@ -355,8 +362,19 @@ class SettingsManager
             'senderid' => preg_match('/^[A-Za-z0-9]{1,11}$/', $raw) ? null : 'must be 1–11 letters or numbers, with no spaces.',
             // http(s) only — this ends up in an audio src, so javascript: and data: must never get through.
             'url'      => (filter_var($raw, FILTER_VALIDATE_URL) && preg_match('#^https?://#i', $raw)) ? null : 'must be a web address starting with http:// or https://.',
+            'datetime' => $this->isDateTime($raw) ? null : 'must be a date and time such as 2026-12-01 09:00.',
             default    => null,
         };
+    }
+
+    /**
+     * "YYYY-MM-DD HH:MM" and a real moment: 2026-02-30 and 25:00 are refused, not quietly rolled over.
+     */
+    protected function isDateTime(string $raw): bool
+    {
+        $parsed = \DateTimeImmutable::createFromFormat('!Y-m-d H:i', $raw);
+
+        return $parsed !== false && $parsed->format('Y-m-d H:i') === $raw;
     }
 
     /**

@@ -79,9 +79,10 @@ class SettingField extends Cell
     protected function htmlType(array $def): string
     {
         return match ($def['format'] ?? '') {
-            'email' => 'email',
-            'phone' => 'tel',
-            default => 'text',
+            'email'    => 'email',
+            'phone'    => 'tel',
+            'datetime' => 'datetime-local',
+            default    => 'text',
         };
     }
 
@@ -93,6 +94,11 @@ class SettingField extends Cell
             $extra = ' min="' . (int) $def['min'] . '" max="' . (int) $def['max'] . '"';
         } elseif (isset($def['maxLength'])) {
             $extra = ' maxlength="' . (int) $def['maxLength'] . '"';
+        }
+
+        // A date-and-time picker wants "2026-12-01T09:00"; what is stored (and shown as the default) has a space.
+        if ($type === 'datetime-local') {
+            $value = str_replace(' ', 'T', (string) $value);
         }
 
         return '<input type="' . $type . '" class="form-control" id="' . $id . '" name="' . esc($name, 'attr')

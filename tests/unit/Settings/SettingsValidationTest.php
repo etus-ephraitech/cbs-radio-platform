@@ -81,6 +81,23 @@ final class SettingsValidationTest extends UnitTestCase
             'url: protocol-relative'       => ['url', '//example.com/x', false],
             'url: not a url'               => ['url', 'not a url', false],
             'url: no host'                 => ['url', 'https://', false],
+
+            'datetime: ordinary'           => ['datetime', '2026-12-01 09:00', true],
+            'datetime: midnight'           => ['datetime', '2026-12-01 00:00', true],
+            'datetime: last minute of the year' => ['datetime', '2026-12-31 23:59', true],
+            'datetime: a leap day'         => ['datetime', '2028-02-29 12:00', true],
+            // A date that does not exist must be refused, not quietly rolled over to the next month.
+            'datetime: not a leap year'    => ['datetime', '2026-02-29 12:00', false],
+            'datetime: 30 February'        => ['datetime', '2026-02-30 10:00', false],
+            'datetime: month 13'           => ['datetime', '2026-13-01 10:00', false],
+            'datetime: hour 24'            => ['datetime', '2026-12-01 24:00', false],
+            'datetime: minute 60'          => ['datetime', '2026-12-01 09:60', false],
+            'datetime: one-digit hour'     => ['datetime', '2026-12-01 9:00', false],
+            'datetime: no time'            => ['datetime', '2026-12-01', false],
+            'datetime: seconds as well'    => ['datetime', '2026-12-01 09:00:00', false],
+            'datetime: a words date'       => ['datetime', 'tomorrow', false],
+            'datetime: day first'          => ['datetime', '01-12-2026 09:00', false],
+            'datetime: raw picker value'   => ['datetime', '2026-12-01T09:00', false],
         ];
     }
 

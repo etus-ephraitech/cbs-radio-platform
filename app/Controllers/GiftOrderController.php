@@ -2,7 +2,9 @@
 
 namespace App\Controllers;
 
+use App\Libraries\GiftCart;
 use App\Models\GiftModel;
+use App\Models\GiftVendorModel;
 use App\Models\GiftOrderModel;
 use App\Services\GiftOrderService;
 use App\Services\PaymentService;
@@ -32,9 +34,24 @@ class GiftOrderController extends BaseController
      */
     public function index()
     {
+        $hosted   = [];
+        $standard = [];
+
+        // Gifts from a partner shop with its own checkout (Katale) are bought through the gift cart and paid on the
+        // shop's page; everything else is ordered with the form below and paid through us.
+        foreach ($this->giftModel->active() as $gift) {
+            if ($gift['source'] === GiftModel::SOURCE_VENDOR && in_array($gift['vendor_driver'] ?? '', GiftVendorModel::HOSTED_DRIVERS, true)) {
+                $hosted[] = $gift;
+            } else {
+                $standard[] = $gift;
+            }
+        }
+
         return ui_view('gifts/catalog', [
-            'gifts'     => $this->giftModel->active(),
-            'bookingId' => $this->request->getGet('booking_id'),
+            'gifts'       => $standard,
+            'hostedGifts' => $hosted,
+            'cartCount'   => (new GiftCart())->count(),
+            'bookingId'   => $this->request->getGet('booking_id'),
         ]);
     }
 

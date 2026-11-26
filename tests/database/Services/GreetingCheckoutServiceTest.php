@@ -147,6 +147,19 @@ final class GreetingCheckoutServiceTest extends AppTestCase
         $this->assertSame(0, $this->rows('bookings'));
     }
 
+    public function testAGiftFromAHostedCheckoutVendorCannotJoinAGreeting(): void
+    {
+        // Katale gifts are bought through the gift cart and paid on Katale's page, so a greeting can't carry one.
+        $hosted = $this->makeHostedGift(['name' => 'Flower Bouquet']);
+
+        $result = $this->checkout()->submit($this->greeting(), [$hosted['id'] => 1]);
+
+        $this->assertFalse($result['success']);
+        $this->assertSame("Flower Bouquet is bought from the gift shop and can't be added to a greeting.", $result['message']);
+        $this->assertSame(0, $this->rows('bookings'), 'Refused before anything is written.');
+        $this->assertSame(0, $this->rows('gift_orders'));
+    }
+
     public function testAGiftInAnotherCurrencyCannotJoinThePayment(): void
     {
         $dollars = $this->makeGift(['name' => 'Gift card', 'currency' => 'USD', 'price' => 10]);

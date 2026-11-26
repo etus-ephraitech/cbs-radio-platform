@@ -25,6 +25,7 @@ final class Registry
 
     private const GROUPS = [
         'general'       => 'General',
+        'status'        => 'Site status',
         'site'          => 'Public site',
         'payments'      => 'Payments',
         'notifications' => 'Notifications',
@@ -148,8 +149,23 @@ final class Registry
             'bool'   => in_array(strtolower(trim($input)), ['1', 'on', 'true', 'yes'], true) ? '1' : '0',
             'list'   => implode("\n", self::splitList($input)),
             'text'   => trim(str_replace(["\r\n", "\r"], "\n", $input)),
-            default  => ($def['format'] ?? '') === 'currency' ? strtoupper(trim($input)) : trim($input),
+            default  => match ($def['format'] ?? '') {
+                'currency' => strtoupper(trim($input)),
+                'datetime' => self::normalizeDateTime($input),
+                default    => trim($input),
+            },
         };
+    }
+
+    /**
+     * "2026-12-01T09:00" (what a browser's date-and-time picker sends) and "2026-12-01 09:00:00" both become
+     * "2026-12-01 09:00". Anything else is left as typed, for the validation to refuse.
+     */
+    private static function normalizeDateTime(string $input): string
+    {
+        $input = trim(str_replace('T', ' ', $input));
+
+        return preg_match('/^(\d{4}-\d{2}-\d{2} \d{2}:\d{2}):\d{2}$/', $input, $m) ? $m[1] : $input;
     }
 
     /**
@@ -193,6 +209,31 @@ final class Registry
                 'label' => 'Rows per page in admin lists',
                 'help'  => 'Applies to the bookings list and the notifications log.',
                 'target' => ['CbsRadio', 'adminPageSize'],
+            ],
+
+            // -------------------------------------------------------- site status
+            'status.mode' => [
+                'group' => 'status', 'type' => 'select',
+                'options' => [
+                    'live'        => 'Live — the site is open',
+                    'coming_soon' => 'Coming soon — visitors see a launch page',
+                    'maintenance' => 'Under maintenance — visitors see a maintenance page',
+                ],
+                'label' => 'Site status',
+                'help'  => 'Staff signed in to the admin area can always use the whole site, and payment confirmations from the Mobile Money provider keep working in every mode. Use Preview, below, to see what visitors will see.',
+                'target' => ['CbsRadio', 'siteMode'],
+            ],
+            'status.message' => [
+                'group' => 'status', 'type' => 'text', 'maxLength' => 400, 'rows' => 3,
+                'label' => 'Message to visitors',
+                'help'  => 'Shown on the coming soon or maintenance page. Leave empty to use the standard wording.',
+                'target' => ['CbsRadio', 'siteMessage'],
+            ],
+            'status.returnAt' => [
+                'group' => 'status', 'type' => 'string', 'format' => 'datetime', 'maxLength' => 16,
+                'label' => 'Opening or return time',
+                'help'  => 'When the site opens (coming soon) or is expected back (maintenance), in the station\'s local time. Visitors see it, and a coming soon page counts down to it. It does not open the site by itself: you still switch the status to Live. Leave empty if you do not know.',
+                'target' => ['CbsRadio', 'siteReturnAt'],
             ],
 
             // -------------------------------------------------------- public site
