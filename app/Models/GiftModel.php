@@ -13,7 +13,7 @@ class GiftModel extends Model
     protected $useSoftDeletes   = false;
 
     public const SOURCE_LOCAL  = 'local';
-    public const SOURCE_VENDOR = 'vendor';
+    public const SOURCE_VENDOR = 'katale';
 
     protected $allowedFields = [
         'name',
