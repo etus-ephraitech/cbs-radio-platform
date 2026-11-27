@@ -1,3 +1,4 @@
+<?php $filtered = array_filter($filters ?? []) !== []; ?>
 <?= $this->extend('layouts/admin') ?>
 
 <?= $this->section('content') ?>
@@ -9,6 +10,17 @@
     'actionLabel' => '+ New local gift',
 ]) ?>
 
+<?= view_cell('App\Cells\FilterBar::render', [
+    'action' => 'admin/gifts',
+    'fields' => [
+        ['name' => 'q', 'label' => 'Search', 'type' => 'search', 'placeholder' => 'Name or description'],
+        ['name' => 'type', 'label' => 'Type', 'type' => 'select', 'options' => ['ecard' => 'E-card', 'airtime' => 'Airtime', 'shoutout' => 'Shout-out', 'dedication' => 'Song dedication', 'physical' => 'Delivered gift']],
+        ['name' => 'active', 'label' => 'Availability', 'type' => 'select', 'options' => ['1' => 'Active', '0' => 'Inactive']],
+        ['name' => 'vendor', 'label' => 'Vendor', 'type' => 'select', 'options' => $vendors],
+    ],
+    'values' => $filters,
+]) ?>
+
 <h2 class="h6 mb-2">Our gifts</h2>
 <table class="table table-sm table-hover bg-white align-middle mb-5">
     <thead>
@@ -16,7 +28,7 @@
     </thead>
     <tbody>
         <?php if (empty($localGifts)): ?>
-            <tr><td colspan="5" class="text-muted">No local gifts yet.</td></tr>
+            <tr><td colspan="5" class="text-muted"><?= $filtered ? 'No gifts of ours match these filters.' : 'No local gifts yet.' ?></td></tr>
         <?php endif; ?>
         <?php foreach ($localGifts as $gift): ?>
             <tr>
@@ -51,7 +63,7 @@
     </thead>
     <tbody>
         <?php if (empty($vendorGifts)): ?>
-            <tr><td colspan="7" class="text-muted">No vendor gifts synced yet.</td></tr>
+            <tr><td colspan="7" class="text-muted"><?= $filtered ? 'No vendor gifts match these filters.' : 'No vendor gifts synced yet.' ?></td></tr>
         <?php endif; ?>
         <?php foreach ($vendorGifts as $gift): ?>
             <tr>

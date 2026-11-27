@@ -70,7 +70,7 @@ class DemoSeeder extends Seeder
         foreach ($tierRows as [$category, $key, $package, $features, $price]) {
             $this->db->table('rate_tiers')->insert([
                 'category_id' => $categoryIds[$category], 'package_level' => $package, 'features' => $features,
-                'includes_on_air' => 1, 'price' => $price, 'currency' => 'UGX', 'is_active' => 1,
+                'includes_on_air' => 1, 'includes_voice_note' => $key === 'voice' ? 1 : 0, 'price' => $price, 'currency' => 'UGX', 'is_active' => 1,
                 'created_at' => $now, 'updated_at' => $now,
             ]);
             $tierIds[$key] = $this->db->insertID();

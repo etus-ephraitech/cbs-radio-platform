@@ -3,7 +3,9 @@
 namespace App\Controllers;
 
 use App\Models\CategoryModel;
+use App\Libraries\GiftCart;
 use App\Models\GiftModel;
+use App\Models\GiftVendorModel;
 use App\Models\RateTierModel;
 use App\Models\ShowModel;
 
@@ -43,6 +45,7 @@ class LandingController extends BaseController
             'shows'           => $shows,
             'sampleShow'      => $shows[0]['name'] ?? 'our morning show',
             'gifts'           => $this->featuredGifts(),
+            'cartCount'       => (new GiftCart())->count(),
             'giftTypes'       => self::GIFT_TYPE_LABELS,
         ]);
     }
@@ -170,17 +173,83 @@ class LandingController extends BaseController
     }
 
     /**
-     * A handful of gifts to show on the homepage, our own before vendors'.
+     * The gifts for the homepage: up to six that can be added to a greeting and up to eight delivered to the door
+     * by a hosted-checkout partner (Katale), which are bought with the gift cart. Each carries 'hosted' so the page
+     * knows which group and which button it belongs to.
      *
-     * @return array<int, array<string, mixed>>
+     * Each group is shared out between its suppliers in turn (ours, then each vendor, cheapest first), so one
+     * supplier with many gifts cannot push every other vendor's gifts off the page. A gift from a vendor that has
+     * been switched off is left out, and so is a delivered gift that is out of stock, so the page never offers what
+     * the booking or the cart would refuse.
+     *
+     * @return array<int, array<string, mixed>> the greeting gifts first, then the delivered ones
      */
     protected function featuredGifts(): array
     {
-        $gifts = (new GiftModel())->orderable();
+        $own = $hosted = [];
 
-        usort($gifts, static fn (array $a, array $b) => [$a['source'] === 'local' ? 0 : 1, (float) $a['price']]
-            <=> [$b['source'] === 'local' ? 0 : 1, (float) $b['price']]);
+        foreach ((new GiftModel())->active() as $gift) {
+            $isVendor = $gift['source'] === GiftModel::SOURCE_VENDOR;
 
-        return array_slice($gifts, 0, 4);
+            if ($isVendor && (int) ($gift['vendor_active'] ?? 1) !== 1) {
+                continue;
+            }
+
+            if ($isVendor && in_array($gift['vendor_driver'] ?? '', GiftVendorModel::HOSTED_DRIVERS, true)) {
+                if (isset($gift['stock_available']) && (int) $gift['stock_available'] === 0) {
+                    continue;
+                }
+
+                $hosted[] = $gift + ['hosted' => true];
+            } else {
+                $own[] = $gift + ['hosted' => false];
+            }
+        }
+
+        return array_merge($this->shareBetweenSuppliers($own, 6), $this->shareBetweenSuppliers($hosted, 8));
+    }
+
+    /**
+     * Takes up to $limit gifts, one supplier after another, cheapest first within each. Our own gifts are the first
+     * supplier, so they lead without taking every place.
+     *
+     * @param array<int, array<string, mixed>> $gifts
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    protected function shareBetweenSuppliers(array $gifts, int $limit): array
+    {
+        $bySupplier = [];
+
+        foreach ($gifts as $gift) {
+            $key = $gift['source'] === GiftModel::SOURCE_VENDOR ? 'v' . (int) $gift['vendor_id'] : 'a-ours';
+            $bySupplier[$key][] = $gift;
+        }
+
+        ksort($bySupplier); // "a-ours" sorts before every "v<id>"
+
+        foreach ($bySupplier as &$list) {
+            usort($list, static fn (array $a, array $b) => (float) $a['price'] <=> (float) $b['price']);
+        }
+        unset($list);
+
+        $picked = [];
+
+        while (count($picked) < $limit && $bySupplier !== []) {
+            foreach ($bySupplier as $key => &$list) {
+                $picked[] = array_shift($list);
+
+                if ($list === []) {
+                    unset($bySupplier[$key]);
+                }
+
+                if (count($picked) === $limit) {
+                    break 2;
+                }
+            }
+            unset($list);
+        }
+
+        return $picked;
     }
 }

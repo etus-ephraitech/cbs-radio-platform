@@ -85,6 +85,67 @@ class GiftOrderModel extends Model
     }
 
     /**
+     * The admin list with filters: status, the gift's source (ours or a vendor's), a created-between date range,
+     * and a search over the sender, the recipient, the gift's name, the vendor's order reference and the order or
+     * greeting number.
+     *
+     * @param array<string, string> $filters q, status, source, from, to (already checked by AdminFilters)
+     */
+    public function adminSearch(array $filters, int $limit, int $offset): array
+    {
+        $this->select('gift_orders.*, gifts.name AS gift_name, gifts.source AS gift_source')
+            ->join('gifts', 'gifts.id = gift_orders.gift_id');
+        $this->applyAdminFilters($filters);
+
+        return $this->orderBy('gift_orders.created_at', 'DESC')->orderBy('gift_orders.id', 'DESC')->findAll($limit, $offset);
+    }
+
+    public function adminCount(array $filters): int
+    {
+        $this->join('gifts', 'gifts.id = gift_orders.gift_id');
+        $this->applyAdminFilters($filters);
+
+        return $this->countAllResults();
+    }
+
+    private function applyAdminFilters(array $f): void
+    {
+        if (($f['status'] ?? '') !== '') {
+            $this->where('gift_orders.status', $f['status']);
+        }
+
+        if (($f['source'] ?? '') !== '') {
+            $this->where('gifts.source', $f['source']);
+        }
+
+        if (($f['from'] ?? '') !== '') {
+            $this->where('gift_orders.created_at >=', $f['from'] . ' 00:00:00');
+        }
+
+        if (($f['to'] ?? '') !== '') {
+            $this->where('gift_orders.created_at <=', $f['to'] . ' 23:59:59');
+        }
+
+        $q = $f['q'] ?? '';
+
+        if ($q !== '') {
+            $this->groupStart()
+                ->like('gift_orders.sender_name', $q)
+                ->orLike('gift_orders.sender_phone', $q)
+                ->orLike('gift_orders.recipient_name', $q)
+                ->orLike('gift_orders.recipient_phone', $q)
+                ->orLike('gift_orders.vendor_order_ref', $q)
+                ->orLike('gifts.name', $q);
+
+            if (ctype_digit($q)) {
+                $this->orWhere('gift_orders.id', (int) $q)->orWhere('gift_orders.booking_id', (int) $q);
+            }
+
+            $this->groupEnd();
+        }
+    }
+
+    /**
      * A booking's gift orders with the gift name attached, for the admin
      * booking detail page.
      */

@@ -105,6 +105,58 @@ class VendorCheckoutModel extends Model
         return $this->orderBy('vendor_checkouts.created_at', 'DESC')->orderBy('vendor_checkouts.id', 'DESC')->findAll();
     }
 
+    /**
+     * The admin list with filters: state, shop, a started-between date range, and a search over the purchase
+     * reference, the shop's own reference and the shop's name.
+     *
+     * @param array<string, string> $filters q, state, vendor, from, to (already checked by AdminFilters)
+     */
+    public function adminSearch(array $filters, int $limit, int $offset): array
+    {
+        $this->select('vendor_checkouts.*, gift_vendors.name AS vendor_name')
+            ->join('gift_vendors', 'gift_vendors.id = vendor_checkouts.vendor_id');
+        $this->applyAdminFilters($filters);
+
+        return $this->orderBy('vendor_checkouts.created_at', 'DESC')->orderBy('vendor_checkouts.id', 'DESC')->findAll($limit, $offset);
+    }
+
+    public function adminCount(array $filters): int
+    {
+        $this->join('gift_vendors', 'gift_vendors.id = vendor_checkouts.vendor_id');
+        $this->applyAdminFilters($filters);
+
+        return $this->countAllResults();
+    }
+
+    private function applyAdminFilters(array $f): void
+    {
+        if (($f['state'] ?? '') !== '') {
+            $this->where('vendor_checkouts.state', $f['state']);
+        }
+
+        if (($f['vendor'] ?? '') !== '') {
+            $this->where('vendor_checkouts.vendor_id', (int) $f['vendor']);
+        }
+
+        if (($f['from'] ?? '') !== '') {
+            $this->where('vendor_checkouts.created_at >=', $f['from'] . ' 00:00:00');
+        }
+
+        if (($f['to'] ?? '') !== '') {
+            $this->where('vendor_checkouts.created_at <=', $f['to'] . ' 23:59:59');
+        }
+
+        $q = $f['q'] ?? '';
+
+        if ($q !== '') {
+            $this->groupStart()
+                ->like('vendor_checkouts.purchase_reference', $q)
+                ->orLike('vendor_checkouts.vendor_reference', $q)
+                ->orLike('gift_vendors.name', $q)
+                ->groupEnd();
+        }
+    }
+
     public function withVendor(int $id): ?array
     {
         return $this->select('vendor_checkouts.*, gift_vendors.name AS vendor_name')

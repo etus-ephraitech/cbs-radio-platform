@@ -107,7 +107,8 @@
 
 <nav class="navbar navbar-expand-lg navbar-cbs navbar-dark">
     <div class="container">
-        <a class="navbar-brand" href="<?= site_url('/') ?>">CBS Radio <span class="on-air-tag">ON AIR</span></a>
+        <?php $brand = cbs_brand(); ?>
+        <a class="navbar-brand" href="<?= site_url('/') ?>"><?php if ($brand['logo'] !== ''): ?><img src="<?= esc($brand['logo'], 'attr') ?>" alt="<?= esc($brand['alt'], 'attr') ?>" style="height:34px;width:auto"><?php else: ?>CBS Radio <span class="on-air-tag">ON AIR</span><?php endif; ?></a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#cbsNav">
             <span class="navbar-toggler-icon"></span>
         </button>

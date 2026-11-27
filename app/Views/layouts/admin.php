@@ -201,7 +201,8 @@ $isActive = static function (string $segment) use ($currentPath): string {
 
     <div class="admin-shell">
         <aside class="admin-sidebar">
-            <a href="<?= site_url('admin') ?>" class="brand">CBS Radio <span class="on-air-tag">ADMIN</span></a>
+            <?php $brand = cbs_brand(); ?>
+            <a href="<?= site_url('admin') ?>" class="brand"><?php if ($brand['logo'] !== ''): ?><img src="<?= esc($brand['logo'], 'attr') ?>" alt="<?= esc($brand['alt'], 'attr') ?>" style="height:34px;width:auto;max-width:100%;background:#fff;border-radius:6px;padding:3px 6px"> <span class="on-air-tag">ADMIN</span><?php else: ?>CBS Radio <span class="on-air-tag">ADMIN</span><?php endif; ?></a>
 
             <nav class="nav flex-column">
                 <a class="nav-link <?= $isActive('admin') ?>" href="<?= site_url('admin') ?>">Dashboard</a>
@@ -223,6 +224,12 @@ $isActive = static function (string $segment) use ($currentPath): string {
 
                 <div class="nav-group-label">System</div>
                 <a class="nav-link <?= $isActive('settings') ?>" href="<?= site_url('admin/settings') ?>">Settings</a>
+                <?php if (cbs_is_superadmin()): ?>
+                    <a class="nav-link <?= $isActive('users') ?>" href="<?= site_url('admin/users') ?>">Users</a>
+                    <a class="nav-link <?= $isActive('roles') ?>" href="<?= site_url('admin/roles') ?>">Roles</a>
+                    <a class="nav-link <?= $isActive('branding') ?>" href="<?= site_url('admin/branding') ?>">Logo</a>
+                    <a class="nav-link <?= $isActive('appearance') ?>" href="<?= site_url('admin/appearance') ?>">Appearance</a>
+                <?php endif; ?>
             </nav>
         </aside>
 

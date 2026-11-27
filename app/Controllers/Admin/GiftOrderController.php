@@ -2,6 +2,7 @@
 
 namespace App\Controllers\Admin;
 
+use App\Libraries\AdminFilters;
 use App\Models\GiftOrderModel;
 use App\Services\GiftOrderService;
 
@@ -23,11 +24,25 @@ class GiftOrderController extends BaseAdminController
 
     public function index()
     {
-        $status = $this->request->getGet('status');
+        $filters = AdminFilters::orderedRange(AdminFilters::read($this->request, [
+            'q'      => 'search',
+            'status' => ['pending_payment', 'paid', 'fulfilled', 'cancelled'],
+            'source' => ['local', 'vendor'],
+            'from'   => 'date',
+            'to'     => 'date',
+        ]));
+
+        $perPage             = config('CbsRadio')->adminPageSize;
+        $total               = $this->giftOrderModel->adminCount($filters);
+        [$page, $totalPages] = AdminFilters::page($this->request, $total, $perPage);
 
         return ui_view('admin/gift_orders/index', [
-            'giftOrders' => $this->giftOrderModel->adminList($status ?: null),
-            'status'     => $status,
+            'giftOrders' => $this->giftOrderModel->adminSearch($filters, $perPage, ($page - 1) * $perPage),
+            'filters'    => $filters,
+            'status'     => $filters['status'] === '' ? null : $filters['status'],
+            'page'       => $page,
+            'totalPages' => $totalPages,
+            'total'      => $total,
         ]);
     }
 

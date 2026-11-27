@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "ca4fc3205c10bce6d0c2384812c3ecfe",
+    "content-hash": "1c2e1ebe07637a9763996311b21fc8e6",
     "packages": [
         {
             "name": "codeigniter4/framework",
@@ -85,24 +85,24 @@
         },
         {
             "name": "ephraitech/ci4-auth",
-            "version": "v0.10.1",
+            "version": "v0.12.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/etus-ephraitech/ci4-auth.git",
-                "reference": "e9d4f960e0f95a8cc6ed6bc98733b96aa8aa431a"
+                "reference": "5cff4069221de14a1d52c92b4cd7d64ce39e3da5"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/etus-ephraitech/ci4-auth/zipball/e9d4f960e0f95a8cc6ed6bc98733b96aa8aa431a",
-                "reference": "e9d4f960e0f95a8cc6ed6bc98733b96aa8aa431a",
+                "url": "https://api.github.com/repos/etus-ephraitech/ci4-auth/zipball/5cff4069221de14a1d52c92b4cd7d64ce39e3da5",
+                "reference": "5cff4069221de14a1d52c92b4cd7d64ce39e3da5",
                 "shasum": ""
             },
             "require": {
+                "codeigniter4/framework": "^4.7",
                 "ext-mbstring": "*",
                 "php": "^8.2"
             },
             "require-dev": {
-                "codeigniter4/framework": "^4.5",
                 "phpunit/phpunit": "^10.5"
             },
             "type": "library",
@@ -139,7 +139,7 @@
                 "issues": "https://github.com/etus-ephraitech/ci4-auth/issues",
                 "source": "https://github.com/etus-ephraitech/ci4-auth"
             },
-            "time": "2026-10-10T08:59:41+00:00"
+            "time": "2026-11-15T11:48:17+00:00"
         },
         {
             "name": "laminas/laminas-escaper",

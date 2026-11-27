@@ -7,12 +7,17 @@
     'subtitle' => 'Gifts visitors bought through a partner shop. They pay the shop, not us; "paid" is what the shop reports.',
 ]) ?>
 
-<div class="btn-group btn-group-sm mb-3 flex-wrap">
-    <a href="<?= site_url('admin/gift-purchases') ?>" class="btn btn-outline-secondary <?= $state === null ? 'active' : '' ?>">All</a>
-    <?php foreach (['awaiting_payment' => 'Awaiting payment', 'in_checkout' => 'In checkout', 'open' => 'Open', 'paid' => 'Paid', 'cancelled' => 'Cancelled', 'expired' => 'Expired', 'failed' => 'Failed'] as $value => $label): ?>
-        <a href="<?= site_url('admin/gift-purchases?state=' . $value) ?>" class="btn btn-outline-secondary <?= $state === $value ? 'active' : '' ?>"><?= esc($label) ?></a>
-    <?php endforeach; ?>
-</div>
+<?= view_cell('App\Cells\FilterBar::render', [
+    'action' => 'admin/gift-purchases',
+    'fields' => [
+        ['name' => 'q', 'label' => 'Search', 'type' => 'search', 'placeholder' => 'Reference or shop'],
+        ['name' => 'state', 'label' => 'Status', 'type' => 'select', 'options' => ['awaiting_payment' => 'Awaiting payment', 'in_checkout' => 'In checkout', 'open' => 'Open', 'paid' => 'Paid', 'cancelled' => 'Cancelled', 'expired' => 'Expired', 'failed' => 'Failed']],
+        ['name' => 'vendor', 'label' => 'Shop', 'type' => 'select', 'options' => $vendors],
+        ['name' => 'from', 'label' => 'From', 'type' => 'date'],
+        ['name' => 'to', 'label' => 'To', 'type' => 'date'],
+    ],
+    'values' => $filters,
+]) ?>
 
 <table class="table table-sm table-hover bg-white align-middle">
     <thead>
@@ -20,7 +25,7 @@
     </thead>
     <tbody>
         <?php if (empty($purchases)): ?>
-            <tr><td colspan="7" class="text-muted">No purchases yet.</td></tr>
+            <tr><td colspan="7" class="text-muted">No purchases match.</td></tr>
         <?php endif; ?>
         <?php foreach ($purchases as $purchase): ?>
             <?php
@@ -42,5 +47,10 @@
         <?php endforeach; ?>
     </tbody>
 </table>
+
+<div class="d-flex justify-content-between align-items-center mt-3 flex-wrap gap-2">
+    <span class="text-muted small"><?= (int) $total ?> in total</span>
+    <?= view_cell('App\Cells\Pagination::render', ['page' => $page, 'totalPages' => $totalPages, 'baseUrl' => 'admin/gift-purchases', 'query' => $filters]) ?>
+</div>
 
 <?= $this->endSection() ?>

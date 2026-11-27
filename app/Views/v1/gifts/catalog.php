@@ -15,7 +15,8 @@ $this->setVar('metaDescription', 'Send an e-card, airtime, a shout-out, a song d
 
 $asset   = static fn (string $path): string => base_url($path) . (is_file(FCPATH . $path) ? '?v=' . filemtime(FCPATH . $path) : '');
 $errors  = (array) (session('errors') ?? []);
-$oldGift = (string) old('gift_id');
+$picked  = (string) service('request')->getGet('gift'); // /gifts?gift=12 comes from the homepage's "Send this"
+$oldGift = (string) old('gift_id') !== '' ? (string) old('gift_id') : (ctype_digit($picked) ? $picked : '');
 $tick    = cbs_icon_svg('check', .95);
 $hostedGifts = $hostedGifts ?? [];
 $cartCount   = (int) ($cartCount ?? 0);
@@ -168,7 +169,7 @@ $cartCount   = (int) ($cartCount ?? 0);
                         <p>From our partner shop. Add as many as you like, then give the delivery address, pick the arrival dates and pay on the shop's secure page.</p>
                     </div>
                     <?php if ($cartCount > 0): ?>
-                        <a class="ck-btn ck-btn--gold" href="<?= site_url('gifts/cart') ?>">View cart (<?= esc($cartCount) ?>)</a>
+                        <a class="ck-btn ck-btn--gold" style="margin-left:auto;white-space:nowrap" href="<?= site_url('gifts/cart') ?>">View cart (<?= esc($cartCount) ?>)</a>
                     <?php endif; ?>
                 </div>
 

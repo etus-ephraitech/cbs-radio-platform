@@ -11,15 +11,19 @@
     'subtitle' => 'Paid orders are ready to fulfill. Vendor gifts are placed with the vendor when you fulfill them.',
 ]) ?>
 
-<div class="btn-group btn-group-sm mb-3">
-    <a href="<?= site_url('admin/gift-orders') ?>" class="btn btn-outline-secondary <?= $status === null ? 'active' : '' ?>">All</a>
-    <a href="<?= site_url('admin/gift-orders?status=pending_payment') ?>" class="btn btn-outline-secondary <?= $status === 'pending_payment' ? 'active' : '' ?>">Pending payment</a>
-    <a href="<?= site_url('admin/gift-orders?status=paid') ?>" class="btn btn-outline-secondary <?= $status === 'paid' ? 'active' : '' ?>">Paid</a>
-    <a href="<?= site_url('admin/gift-orders?status=fulfilled') ?>" class="btn btn-outline-secondary <?= $status === 'fulfilled' ? 'active' : '' ?>">Fulfilled</a>
-    <a href="<?= site_url('admin/gift-orders?status=cancelled') ?>" class="btn btn-outline-secondary <?= $status === 'cancelled' ? 'active' : '' ?>">Cancelled</a>
-</div>
+<?= view_cell('App\Cells\FilterBar::render', [
+    'action' => 'admin/gift-orders',
+    'fields' => [
+        ['name' => 'q', 'label' => 'Search', 'type' => 'search', 'placeholder' => 'Name, phone, gift or number'],
+        ['name' => 'status', 'label' => 'Status', 'type' => 'select', 'options' => ['pending_payment' => 'Pending payment', 'paid' => 'Paid', 'fulfilled' => 'Fulfilled', 'cancelled' => 'Cancelled']],
+        ['name' => 'source', 'label' => 'Gift from', 'type' => 'select', 'options' => ['local' => 'Our gifts', 'vendor' => 'Vendors']],
+        ['name' => 'from', 'label' => 'From', 'type' => 'date'],
+        ['name' => 'to', 'label' => 'To', 'type' => 'date'],
+    ],
+    'values' => $filters,
+]) ?>
 
-<table class="table table-sm table-hover bg-white align-middle" id="giftOrdersTable">
+<table class="table table-sm table-hover bg-white align-middle">
     <thead>
         <tr>
             <th>Ref</th>
@@ -114,14 +118,9 @@
     </tbody>
 </table>
 
-<?= $this->endSection() ?>
+<div class="d-flex justify-content-between align-items-center mt-3 flex-wrap gap-2">
+    <span class="text-muted small"><?= (int) $total ?> in total</span>
+    <?= view_cell('App\Cells\Pagination::render', ['page' => $page, 'totalPages' => $totalPages, 'baseUrl' => 'admin/gift-orders', 'query' => $filters]) ?>
+</div>
 
-<?= $this->section('scripts') ?>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/datatables/1.13.11/js/jquery.dataTables.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/datatables/1.13.11/js/dataTables.bootstrap5.min.js"></script>
-<script>
-$(function () {
-    $('#giftOrdersTable').DataTable({ order: [[7, 'desc']], columnDefs: [{ orderable: false, targets: -1 }] });
-});
-</script>
 <?= $this->endSection() ?>

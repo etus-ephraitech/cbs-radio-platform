@@ -1,3 +1,4 @@
+<?php $filtered = array_filter($filters ?? []) !== []; ?>
 <?= $this->extend(ui_layout('admin')) ?>
 
 <?= $this->section('title') ?>Gifts<?= $this->endSection() ?>
@@ -15,6 +16,19 @@
     'secondaryActionIcon'  => 'ri-store-2-line',
 ]) ?>
 
+<div class="card custom-card mb-3">
+<?= view_cell('App\Cells\FilterBar::render', [
+    'action' => 'admin/gifts',
+    'fields' => [
+        ['name' => 'q', 'label' => 'Search', 'type' => 'search', 'placeholder' => 'Name or description'],
+        ['name' => 'type', 'label' => 'Type', 'type' => 'select', 'options' => ['ecard' => 'E-card', 'airtime' => 'Airtime', 'shoutout' => 'Shout-out', 'dedication' => 'Song dedication', 'physical' => 'Delivered gift']],
+        ['name' => 'active', 'label' => 'Availability', 'type' => 'select', 'options' => ['1' => 'Active', '0' => 'Inactive']],
+        ['name' => 'vendor', 'label' => 'Vendor', 'type' => 'select', 'options' => $vendors],
+    ],
+    'values' => $filters,
+]) ?>
+</div>
+
 <div class="card custom-card">
     <div class="card-header">
         <div class="card-title">
@@ -26,7 +40,7 @@
     <?php if (empty($localGifts)): ?>
         <div class="cbs-empty">
             <span class="avatar avatar-xl avatar-rounded bg-primary-transparent fs-3"><i class="ri-gift-2-line" aria-hidden="true"></i></span>
-            <h6>No local gifts yet.</h6>
+            <h6><?= $filtered ? 'No gifts of ours match these filters.' : 'No local gifts yet.' ?></h6>
             <p class="mb-3 fs-13">E-cards, airtime, shout-outs and dedications fulfilled by CBS Radio itself.</p>
             <a href="<?= site_url('admin/gifts/create') ?>" class="btn btn-primary"><i class="ri-add-line me-1" aria-hidden="true"></i>New local gift</a>
         </div>
@@ -77,7 +91,7 @@
     <?php if (empty($vendorGifts)): ?>
         <div class="cbs-empty pt-2">
             <span class="avatar avatar-xl avatar-rounded bg-secondary-transparent fs-3"><i class="ri-store-2-line" aria-hidden="true"></i></span>
-            <h6>No vendor gifts synced yet.</h6>
+            <h6><?= $filtered ? 'No vendor gifts match these filters.' : 'No vendor gifts synced yet.' ?></h6>
             <p class="mb-0 fs-13">Add a vendor and run a sync to bring their products in.</p>
         </div>
     <?php else: ?>

@@ -56,10 +56,9 @@
                 <div class="mb-3">
                     <label for="template-body" class="form-label">Message</label>
                     <textarea id="template-body" name="body" class="form-control" rows="5" required><?= esc(old('body', null, false) ?? $template['body'] ?? '') ?></textarea>
+                    <?= view(ui_view_path('admin/message_templates/_editor_tools'), ['maxLength' => $maxLength, 'tokens' => $tokens, 'wordsPerMinute' => $wordsPerMinute], ['saveData' => false, 'debug' => false]) ?>
                     <div class="form-text">
-                        Up to <?= (int) $maxLength ?> characters. You can use
-                        <?php foreach ($tokens as $token): ?><code>{<?= esc($token) ?>}</code> <?php endforeach; ?>
-                        — the booking form fills in the recipient's and the sender's names from what the visitor has typed,
+                        The booking form fills in the recipient's and the sender's names from what the visitor has typed,
                         and leaves a marker for them to complete if they haven't typed one yet.
                     </div>
                 </div>
@@ -87,4 +86,8 @@
     </div>
 </div>
 
+<?= $this->endSection() ?>
+
+<?= $this->section('scripts') ?>
+<script src="<?= esc(base_url('assets/js/template-editor.js'), 'attr') ?>"></script>
 <?= $this->endSection() ?>

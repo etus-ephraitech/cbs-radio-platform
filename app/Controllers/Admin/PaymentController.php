@@ -2,6 +2,7 @@
 
 namespace App\Controllers\Admin;
 
+use App\Libraries\AdminFilters;
 use App\Models\PaymentModel;
 use App\Services\PaymentService;
 
@@ -23,11 +24,27 @@ class PaymentController extends BaseAdminController
 
     public function index()
     {
-        $status = $this->request->getGet('status');
+        $providers = $this->paymentModel->providers();
+        $filters   = AdminFilters::orderedRange(AdminFilters::read($this->request, [
+            'q'        => 'search',
+            'status'   => [PaymentModel::STATUS_PENDING, PaymentModel::STATUS_SUCCESS, PaymentModel::STATUS_FAILED],
+            'provider' => $providers,
+            'from'     => 'date',
+            'to'       => 'date',
+        ]));
+
+        $perPage             = config('CbsRadio')->adminPageSize;
+        $total               = $this->paymentModel->adminCount($filters);
+        [$page, $totalPages] = AdminFilters::page($this->request, $total, $perPage);
 
         return ui_view('admin/payments/index', [
-            'payments' => $status ? $this->paymentModel->where('status', $status)->findAll() : $this->paymentModel->findAll(),
-            'status'   => $status,
+            'payments'   => $this->paymentModel->adminSearch($filters, $perPage, ($page - 1) * $perPage),
+            'providers'  => $providers,
+            'filters'    => $filters,
+            'status'     => $filters['status'] === '' ? null : $filters['status'],
+            'page'       => $page,
+            'totalPages' => $totalPages,
+            'total'      => $total,
         ]);
     }
 

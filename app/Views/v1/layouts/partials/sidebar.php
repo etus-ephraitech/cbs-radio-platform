@@ -21,25 +21,37 @@ $isActive = static function (string $path) use ($currentPath): bool {
 $menu = [
     ['link' => 'admin', 'label' => 'Dashboard', 'icon' => 'dashboard'],
     ['category' => 'Operations'],
-    ['link' => 'admin/bookings', 'label' => 'Bookings', 'icon' => 'bookings'],
-    ['link' => 'admin/moderation', 'label' => 'Moderation queue', 'icon' => 'moderation'],
-    ['link' => 'admin/payments', 'label' => 'Payments', 'icon' => 'payments'],
-    ['link' => 'admin/gift-orders', 'label' => 'Gift orders', 'icon' => 'gift-orders'],
-    ['link' => 'admin/gift-purchases', 'label' => 'Shop purchases', 'icon' => 'gift-orders'],
-    ['link' => 'admin/notifications', 'label' => 'Notifications', 'icon' => 'notifications'],
+    ['link' => 'admin/bookings', 'area' => 'bookings.manage', 'label' => 'Bookings', 'icon' => 'bookings'],
+    ['link' => 'admin/moderation', 'area' => 'bookings.manage', 'label' => 'Moderation queue', 'icon' => 'moderation'],
+    ['link' => 'admin/payments', 'area' => 'bookings.manage', 'label' => 'Payments', 'icon' => 'payments'],
+    ['link' => 'admin/gift-orders', 'area' => 'gifts.manage', 'label' => 'Gift orders', 'icon' => 'gift-orders'],
+    ['link' => 'admin/gift-purchases', 'area' => 'gifts.manage', 'label' => 'Shop purchases', 'icon' => 'gift-orders'],
+    ['link' => 'admin/notifications', 'area' => 'notifications.manage', 'label' => 'Notifications', 'icon' => 'notifications'],
     ['link' => 'presenter', 'label' => 'Presenter portal', 'icon' => 'presenter'],
     ['category' => 'Catalog'],
-    ['link' => 'admin/categories', 'label' => 'Categories', 'icon' => 'categories'],
-    ['link' => 'admin/rate-tiers', 'label' => 'Packages', 'icon' => 'packages'],
-    ['link' => 'admin/shows', 'label' => 'Shows', 'icon' => 'shows'],
-    ['link' => 'admin/message-templates', 'label' => 'Message templates', 'icon' => 'templates'],
-    ['link' => 'admin/gifts', 'label' => 'Gifts', 'icon' => 'gifts'],
-    ['link' => 'admin/gift-vendors', 'label' => 'Gift vendors', 'icon' => 'vendors'],
+    ['link' => 'admin/categories', 'area' => 'catalog.manage', 'label' => 'Categories', 'icon' => 'categories'],
+    ['link' => 'admin/rate-tiers', 'area' => 'catalog.manage', 'label' => 'Packages', 'icon' => 'packages'],
+    ['link' => 'admin/shows', 'area' => 'catalog.manage', 'label' => 'Shows', 'icon' => 'shows'],
+    ['link' => 'admin/message-templates', 'area' => 'catalog.manage', 'label' => 'Message templates', 'icon' => 'templates'],
+    ['link' => 'admin/gifts', 'area' => 'gifts.manage', 'label' => 'Gifts', 'icon' => 'gifts'],
+    ['link' => 'admin/gift-vendors', 'area' => 'gifts.manage', 'label' => 'Gift vendors', 'icon' => 'vendors'],
     ['category' => 'System'],
-    ['link' => 'admin/settings', 'label' => 'Settings', 'icon' => 'settings'],
+    ['link' => 'admin/settings', 'area' => 'settings.manage', 'label' => 'Settings', 'icon' => 'settings'],
 ];
 
-$logo = static fn (string $file): string => esc(base_url('assets/images/brand-logos/' . $file), 'attr');
+// Pages only a superadmin may open (the routes enforce it; this only decides whether to show the link).
+if (cbs_is_superadmin()) {
+    $menu[] = ['link' => 'admin/users', 'label' => 'Users', 'icon' => 'presenter'];
+    $menu[] = ['link' => 'admin/roles', 'label' => 'Roles', 'icon' => 'presenter'];
+    $menu[] = ['link' => 'admin/branding', 'label' => 'Logo', 'icon' => 'gallery'];
+    $menu[] = ['link' => 'admin/appearance', 'label' => 'Appearance', 'icon' => 'palette'];
+}
+
+// Leave out the areas this person's role does not include (the routes refuse them too).
+$menu = array_values(array_filter($menu, static fn (array $item): bool => ! isset($item['area']) || \App\Libraries\AreaPermission::allows($item['area'])));
+
+$uploadedLogo = cbs_brand()['logo']; // Admin > Logo; empty means the theme's own files
+$logo = static fn (string $file): string => $uploadedLogo !== '' ? esc($uploadedLogo, 'attr') : esc(base_url('assets/images/brand-logos/' . $file), 'attr');
 ?>
 <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -135,6 +147,19 @@ $logo = static fn (string $file): string => esc(base_url('assets/images/brand-lo
     <symbol id="icon-templates" viewBox="0 0 24 24" fill="none">
         <path d="M4 4h16v12H8l-4 4z" />
         <path d="M8 8h8M8 12h5" />
+    </symbol>
+
+    <!-- Appearance -->
+    <symbol id="icon-palette" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 3a9 9 0 1 0 0 18c1.4 0 2-.9 2-1.8 0-1.3-1-1.5-1-2.7 0-1 .8-1.5 1.8-1.5H17a4 4 0 0 0 4-4c0-4-4-8-9-8Z" />
+        <circle cx="7.5" cy="11" r="1" /><circle cx="10.5" cy="7.5" r="1" /><circle cx="15" cy="8" r="1" />
+    </symbol>
+
+    <!-- Logo -->
+    <symbol id="icon-gallery" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="4" width="18" height="16" rx="2.5" />
+        <circle cx="9" cy="10" r="1.7" />
+        <path d="m4 18 5.2-5 3.8 3.5 2.5-2.2L20 18" />
     </symbol>
 
     <!-- Presenter portal -->

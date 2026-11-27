@@ -133,6 +133,7 @@ class RateTierController extends BaseAdminController
             'package_level'   => $this->request->getPost('package_level'),
             'features'        => $this->request->getPost('features'),
             'includes_on_air' => $this->request->getPost('includes_on_air') ? 1 : 0,
+            'includes_voice_note' => $this->request->getPost('includes_voice_note') ? 1 : 0,
             'price'           => $this->request->getPost('price'),
             'currency'        => $this->request->getPost('currency') ?: $this->config->defaultCurrency,
             'is_active'       => $this->request->getPost('is_active') ? 1 : 0,

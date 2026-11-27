@@ -119,6 +119,7 @@ $oldShow   = (string) old('show_id');
                                     data-name="<?= esc($tier['package_level'], 'attr') ?>"
                                     data-price="<?= esc((float) $tier['price'], 'attr') ?>"
                                     data-currency="<?= esc($tier['currency'], 'attr') ?>"
+                                    data-voice="<?= (int) ($tier['includes_voice_note'] ?? 0) === 1 ? '1' : '0' ?>"
                                     <?= (string) old('rate_tier_id') === (string) $tier['id'] ? 'checked' : '' ?>>
                                 <span class="ck-tick" aria-hidden="true"><?= $tick ?></span>
                                 <span class="ck-choice-name"><?= esc($tier['package_level']) ?></span>
@@ -131,7 +132,7 @@ $oldShow   = (string) old('show_id');
                                     <?php if ((int) ($tier['includes_on_air'] ?? 0) === 1): ?>
                                         <span class="ck-tag ck-tag--gold"><?= cbs_icon_svg('radio', .95) ?> Read on air</span>
                                     <?php endif; ?>
-                                    <?php if (stripos($tier['package_level'] . ' ' . ($tier['features'] ?? ''), 'voice') !== false): ?>
+                                    <?php if ((int) ($tier['includes_voice_note'] ?? 0) === 1): ?>
                                         <span class="ck-tag"><?= cbs_icon_svg('mic', .95) ?> Voice note</span>
                                     <?php endif; ?>
                                 </span>
@@ -182,6 +183,12 @@ $oldShow   = (string) old('show_id');
                         </div>
 
                         <label class="form-label" for="messageText">What would you like us to say?</label>
+                        <div class="bk-quick" role="group" aria-label="Add to your message">
+                            <span class="bk-label" style="margin:0">Add:</span>
+                            <button type="button" class="bk-chip" id="addName">Their name</button>
+                            <button type="button" class="bk-chip" id="addSignoff">A sign-off with my name</button>
+                        </div>
+
                         <textarea name="message_text" id="messageText" class="form-control" rows="5" required
                             aria-describedby="messageStatus messageError"><?= esc((string) old('message_text')) ?></textarea>
 
@@ -201,6 +208,10 @@ $oldShow   = (string) old('show_id');
                         <p class="bk-warn" id="placeholderWarn" role="status" hidden></p>
                         <p class="bk-error" id="messageError" role="alert" hidden></p>
                     </div>
+
+                    <p class="bk-help" id="voiceNotIncluded" hidden style="margin-top:1.5rem">
+                        Your package is read out as text. Go back and choose a package with a voice note if you would like to add your own voice.
+                    </p>
 
                     <fieldset class="bk-voice" id="voice" aria-describedby="voiceHelp" style="margin-top:1.5rem">
                         <legend>Add your voice <span class="bk-optional">(optional)</span></legend>

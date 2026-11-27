@@ -230,4 +230,25 @@ final class AdminMessageTemplatesTest extends AppFeatureTestCase
 
         $this->assertStringNotContainsString('Visible title', $this->get('booking/birthdays')->getBody());
     }
+
+    public function testTheEditorOffersPlaceholderButtonsACountAndAPreview(): void
+    {
+        $body = $this->get('admin/message-templates/create')->getBody();
+
+        $this->assertStringContainsString('data-token="recipient"', $body);
+        $this->assertStringContainsString('data-token="sender"', $body);
+        $this->assertStringContainsString('id="tplCount"', $body);
+        $this->assertStringContainsString('id="tplPreview"', $body);
+        $this->assertStringContainsString('data-max="' . config('CbsRadio')->messageMaxLength . '"', $body);
+        $this->assertStringContainsString('assets/js/template-editor.js', $body);
+    }
+
+    public function testTheEditorsPlaceholderButtonsAreTheOnesTheServerAccepts(): void
+    {
+        $body = $this->get('admin/message-templates/create')->getBody();
+
+        preg_match_all('/data-token="([a-z_]+)"/', $body, $m);
+
+        $this->assertSame(MessageTemplateModel::TOKENS, $m[1]);
+    }
 }

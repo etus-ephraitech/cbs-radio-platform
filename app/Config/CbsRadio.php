@@ -99,6 +99,12 @@ class CbsRadio extends BaseConfig
     public string $announcement  = '';
     public string $liveStreamUrl = '';
 
+    // ----- Branding -----
+    // Paths relative to public/, set on Admin > Logo (superadmin only). Empty means the built-in brand.
+    public string $logoPath    = '';
+    public string $faviconPath = '';
+    public string $logoAlt     = 'CBS Radio';
+
     /**
      * Whether the public site is open: 'live', 'coming_soon' or 'maintenance'. Managed under Admin > Settings >
      * Site status (see App\Filters\SiteStatus). Anything unrecognised counts as live, so a typo can never lock
@@ -107,6 +113,22 @@ class CbsRadio extends BaseConfig
     public string $siteMode     = 'live';
     public string $siteMessage  = '';
     public string $siteReturnAt = '';   // "YYYY-MM-DD HH:MM" in the station's time zone, or empty
+
+    // ----- Staff area appearance -----
+    // Set on Admin > Appearance (superadmin only); the values are the theme's own data-* attribute values.
+    public string $themeMode           = 'light';
+    public string $themeDir            = 'ltr';
+    public string $themeNavLayout      = 'vertical';
+    public string $themeVerticalStyle  = 'default';
+    public string $themeNavStyle       = 'menu-click';
+    public string $themePageStyle      = 'regular';
+    public string $themeWidth          = 'fullwidth';
+    public string $themeMenuPosition   = 'fixed';
+    public string $themeHeaderPosition = 'fixed';
+    public string $themeHeaderStyles   = 'light';
+    public string $themeMenuStyles     = 'dark';
+    public string $themePrimary        = '';
+    public string $themeBgImage        = '';
 
     // ----- Admin screens -----
     // Rows per page on paginated admin lists (currently the notifications log).

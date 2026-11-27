@@ -140,6 +140,78 @@ final class LandingPageTest extends AppFeatureTestCase
         $this->assertStringContainsString(site_url('gifts'), $body);
     }
 
+    public function testAGiftDeliveredByAHostedShopIsFeaturedWithItsPhotoAndAnAddToCartButton(): void
+    {
+        $gift = $this->makeHostedGift(['name' => 'Flower Bouquet', 'price' => 45000, 'image_url' => 'https://kataleplus.example.test/uploads/rose.jpg']);
+
+        $body = html_entity_decode($this->body(), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+
+        $this->assertStringContainsString("Gifts they'll love", $body);
+        $this->assertStringContainsString('Flower Bouquet', $body);
+        $this->assertStringContainsString('UGX 45,000', $body);
+        $this->assertStringContainsString('src="https://kataleplus.example.test/uploads/rose.jpg"', $body);
+        $this->assertStringContainsString('Delivered to their door', $body);
+        $this->assertStringContainsString('action="' . site_url('gifts/cart/add') . '"', $body);
+        $this->assertStringContainsString('name="gift_id" value="' . $gift['id'] . '"', $body);
+        $this->assertStringContainsString("paid for on our partner shop's secure page", $body);
+        $this->assertStringContainsString('Delivered to their door', $body);
+        $this->assertStringNotContainsString('Add to your greeting', $body, 'No greeting group when there are no greeting gifts.');
+    }
+
+    public function testGiftsFromEveryVendorAreShownInTheirOwnGroups(): void
+    {
+        $generic = $this->makeVendor(['name' => 'Gift Hub', 'slug' => 'gift-hub']);
+        $this->makeGift(['name' => 'Birthday E-card']);
+        $this->makeGift(['name' => 'Hub Airtime', 'type' => 'airtime', 'source' => 'vendor', 'vendor_id' => $generic['id']]);
+        $this->makeHostedGift(['name' => 'Flower Bouquet']);
+
+        $body = $this->body();
+
+        foreach (['Add to your greeting', 'Birthday E-card', 'Hub Airtime', 'From Gift Hub', 'Delivered to their door', 'Flower Bouquet', 'From Katale'] as $text) {
+            $this->assertStringContainsString($text, $body);
+        }
+        $this->assertSame(1, substr_count($body, 'gifts/cart/add'), 'Only the delivered gift is bought with the cart.');
+    }
+
+    public function testAGiftOfOursOffersSendThisAndNeverTheCart(): void
+    {
+        $gift = $this->makeGift(['name' => 'Birthday E-card', 'price' => 5000]);
+
+        $body = html_entity_decode($this->body(), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+
+        $this->assertStringContainsString('href="' . site_url('gifts?gift=' . $gift['id']) . '"', $body);
+        $this->assertStringNotContainsString('gifts/cart/add', $body);
+        $this->assertStringNotContainsString('partner shop', $body, 'No shop notice when no shop gift is shown.');
+    }
+
+    public function testADeliveredGiftThatIsOutOfStockIsNotOffered(): void
+    {
+        $this->makeHostedGift(['name' => 'Last Year Hamper', 'stock_available' => 0]);
+
+        $this->assertStringNotContainsString('Last Year Hamper', $this->body());
+    }
+
+    public function testADeliveredGiftIsNeverTheOneShownRidingAlongWithAGreeting(): void
+    {
+        $this->makeHostedGift(['name' => 'Flower Bouquet']);
+
+        $body = $this->body();
+
+        $this->assertStringNotContainsString('added to the greeting', $body, 'A delivered gift cannot join a greeting, so the hero must not claim it does.');
+    }
+
+    public function testTheHeaderShowsTheCartOnlyWhenSomethingIsInIt(): void
+    {
+        $gift = $this->makeHostedGift();
+
+        preg_match('#<header class="cbs-header">.*?</header>#s', $this->body(), $empty);
+        $this->assertStringNotContainsString('gifts/cart', $empty[0]);
+
+        preg_match('#<header class="cbs-header">.*?</header>#s', $this->withSession(['gift_cart' => [$gift['id'] => 2]])->get('/')->getBody(), $full);
+        $this->assertStringContainsString('gifts/cart', $full[0]);
+        $this->assertStringContainsString('Gift cart, 2 items', html_entity_decode($full[0], ENT_QUOTES | ENT_HTML5, 'UTF-8'));
+    }
+
     public function testASectionWithNothingToShowIsLeftOutEntirely(): void
     {
         $this->makeCategory();   // a category with no packages is not bookable
@@ -148,7 +220,7 @@ final class LandingPageTest extends AppFeatureTestCase
 
         $this->assertStringContainsString("aren't open for booking just yet", $body);
         $this->assertStringNotContainsString('On the air', $body);
-        $this->assertStringNotContainsString('Send a gift too', $body);
+        $this->assertStringNotContainsString("Gifts they'll love", $body);
         $this->assertStringNotContainsString('For the moments that matter most', $body);
         $this->assertStringContainsString('How it works', $body);
         $this->assertStringContainsString('Questions', $body, 'The static parts of the page remain.');
@@ -374,5 +446,30 @@ final class LandingPageTest extends AppFeatureTestCase
         $this->assertStringContainsString('Something went wrong.', $withMessage);
 
         $this->assertStringNotContainsString('<div class="cbs-notice', $this->withSession([])->get('/')->getBody());
+    }
+
+    public function testAVendorsGiftsAreNotPushedOffThePageByManyOfOurOwn(): void
+    {
+        $vendor = $this->makeVendor(['name' => 'Gift Hub', 'slug' => 'gift-hub']);
+
+        foreach (range(1, 8) as $n) {
+            $this->makeGift(['name' => "Our gift {$n}", 'price' => 1000 * $n]);
+        }
+
+        $this->makeGift(['name' => 'Hub Airtime', 'type' => 'airtime', 'price' => 90000, 'source' => 'vendor', 'vendor_id' => $vendor['id']]);
+
+        $body = $this->body();
+
+        $this->assertStringContainsString('Hub Airtime', $body, 'The vendor gift gets a place although it is the dearest.');
+        $this->assertStringContainsString('Our gift 1', $body);
+        $this->assertStringNotContainsString('Our gift 8', $body, 'The page is still a selection, not the whole catalogue.');
+    }
+
+    public function testAGiftFromAVendorThatIsSwitchedOffIsNotShown(): void
+    {
+        $off = $this->makeVendor(['name' => 'Closed Hub', 'slug' => 'closed-hub', 'is_active' => 0]);
+        $this->makeGift(['name' => 'Ghost Airtime', 'type' => 'airtime', 'source' => 'vendor', 'vendor_id' => $off['id']]);
+
+        $this->assertStringNotContainsString('Ghost Airtime', $this->body());
     }
 }

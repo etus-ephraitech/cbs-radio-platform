@@ -49,6 +49,9 @@
                                 <?php else: ?>
                                     <span class="badge bg-light text-muted">No</span>
                                 <?php endif; ?>
+                                <?php if ((int) ($tier['includes_voice_note'] ?? 0) === 1): ?>
+                                    <span class="badge bg-success-transparent"><i class="ri-voice-recognition-line me-1" aria-hidden="true"></i>Voice note</span>
+                                <?php endif; ?>
                             </td>
                             <td class="text-end fw-semibold"><?= cbs_money((float) $tier['price'], $tier['currency']) ?></td>
                             <td><?= view_cell('App\Cells\StatusBadge::render', ['type' => 'active', 'status' => $tier['is_active']]) ?></td>
