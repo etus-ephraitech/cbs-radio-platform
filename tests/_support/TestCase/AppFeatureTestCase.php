@@ -6,17 +6,20 @@ use CodeIgniter\Config\Factories;
 use CodeIgniter\Test\FeatureTestTrait;
 use Config\Filters as FiltersConfig;
 use Config\Services;
+use Tests\Support\Filters\ActAsArea;
 use Tests\Support\Filters\ActAsRole;
 use Tests\Support\Filters\ActAsStaff;
 
 /**
  * Base for tests that make whole requests: routes, filters, controllers and views.
  *
- * Three things are replaced, in the filter configuration only:
+ * Four things are replaced, in the filter configuration only:
  *   - the `auth` filter, with one that signs the request in as a real staff user (see ActAsStaff), so these tests
  *     do not depend on how the starter kit's login works;
  *   - the package's `role` filter, with one that lets the signed-in test user through unless a test asks for a refusal
  *     (see ActAsRole);
+ *   - the project's `area` filter, with one that lets the test user through unless a test asks for a refusal
+ *     (see ActAsArea);
  *   - the CSRF filter, removed, so a test can post a form without first fetching and echoing a token.
  *
  * Public pages are unaffected: they were never behind `auth`.
@@ -83,6 +86,7 @@ abstract class AppFeatureTestCase extends AppTestCase
 
         $filters->aliases['auth'] = ActAsStaff::class;
         $filters->aliases['role'] = ActAsRole::class;
+        $filters->aliases['area'] = ActAsArea::class;
 
         foreach (['before', 'after'] as $when) {
             $filters->globals[$when] = array_filter(

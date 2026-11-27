@@ -35,7 +35,7 @@ class StaffUserService
      * The auth config the application really defines. Package 0.10.3 and later has a resolver for this; before
      * that, the application's own Config\Auth is the one to read (a fully qualified package class would skip it).
      */
-    private static function authConfig(): Auth
+    public static function authConfig(): Auth
     {
         if (class_exists(ConfigResolver::class)) {
             return ConfigResolver::resolve();

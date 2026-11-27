@@ -97,6 +97,8 @@ $routes->group('presenter', ['filter' => 'auth:session'], static function ($rout
 // Admin\GiftOrderController) — Dev C's area, lead reviews changes here
 // per CONTRIBUTING.md since it touches cross-cutting admin access.
 // ---------------------------------------------------------------------
+// Each area below also carries `area:<permission>` (App\Filters\AreaAccess): staff need that permission, which
+// Admin > Roles grants. Superadmins always pass.
 $routes->group('admin', ['filter' => 'auth:session'], static function ($routes) {
     // Landing page for the whole admin area — see Admin\DashboardController.
     $routes->get('/', 'Admin\DashboardController::index');
@@ -106,7 +108,7 @@ $routes->group('admin', ['filter' => 'auth:session'], static function ($routes) 
     //   $routes->group('moderation', ['filter' => 'auth:moderator'], ...)
     // Admin-editable settings, one tab per group. The test-send route is
     // declared before the (:segment) catch-alls so it can never be shadowed.
-    $routes->group('settings', static function ($routes) {
+    $routes->group('settings', ['filter' => 'area:settings.manage'], static function ($routes) {
         $routes->get('/', 'Admin\SettingController::index');
         $routes->post('test/(:segment)', 'Admin\SettingController::sendTest/$1');
         $routes->get('preview/(:segment)', 'Admin\SettingController::previewStatus/$1');
@@ -114,14 +116,14 @@ $routes->group('admin', ['filter' => 'auth:session'], static function ($routes) 
         $routes->post('(:segment)', 'Admin\SettingController::save/$1');
     });
 
-    $routes->group('bookings', static function ($routes) {
+    $routes->group('bookings', ['filter' => 'area:bookings.manage'], static function ($routes) {
         $routes->get('/', 'Admin\BookingController::index');
         $routes->get('(:num)', 'Admin\BookingController::show/$1');
         $routes->get('(:num)/voice-note', 'Admin\BookingController::voiceNote/$1');
         $routes->post('(:num)/cancel', 'Admin\BookingController::cancel/$1');
     });
 
-    $routes->group('moderation', static function ($routes) {
+    $routes->group('moderation', ['filter' => 'area:bookings.manage'], static function ($routes) {
         $routes->get('/', 'Admin\ModerationController::index');
         $routes->post('(:num)/approve', 'Admin\ModerationController::approve/$1');
         $routes->post('(:num)/reject', 'Admin\ModerationController::reject/$1');
@@ -130,7 +132,7 @@ $routes->group('admin', ['filter' => 'auth:session'], static function ($routes) 
         $routes->get('(:num)/voice-note', 'Admin\ModerationController::playVoiceNote/$1');
     });
 
-    $routes->group('payments', static function ($routes) {
+    $routes->group('payments', ['filter' => 'area:bookings.manage'], static function ($routes) {
         $routes->get('/', 'Admin\PaymentController::index');
         $routes->post('(:num)/mark-manual', 'Admin\PaymentController::markManual/$1');
     });
@@ -146,6 +148,17 @@ $routes->group('admin', ['filter' => 'auth:session'], static function ($routes) 
         $routes->post('(:num)/status', 'Admin\UserController::updateStatus/$1');
         $routes->post('(:num)/reset-password', 'Admin\UserController::resetPassword/$1');
         $routes->post('(:num)/delete', 'Admin\UserController::destroy/$1');
+    });
+
+    // Roles and what each may do. Superadmin only, like Users.
+    $routes->group('roles', ['filter' => 'role:superadmin'], static function ($routes) {
+        $routes->get('/', 'Admin\RoleController::index');
+        $routes->get('create', 'Admin\RoleController::create');
+        $routes->post('/', 'Admin\RoleController::store');
+        $routes->get('(:segment)', 'Admin\RoleController::edit/$1');
+        $routes->post('(:segment)/update', 'Admin\RoleController::update/$1');
+        $routes->post('(:segment)/release', 'Admin\RoleController::release/$1');
+        $routes->post('(:segment)/delete', 'Admin\RoleController::destroy/$1');
     });
 
     // How the staff area looks, for everyone. Superadmin only.
@@ -164,19 +177,19 @@ $routes->group('admin', ['filter' => 'auth:session'], static function ($routes) 
 
     // What visitors bought through a partner shop's hosted checkout (they pay the shop, so this is read-only
     // apart from asking the shop again).
-    $routes->group('gift-purchases', static function ($routes) {
+    $routes->group('gift-purchases', ['filter' => 'area:gifts.manage'], static function ($routes) {
         $routes->get('/', 'Admin\GiftPurchaseController::index');
         $routes->get('(:num)', 'Admin\GiftPurchaseController::show/$1');
         $routes->post('(:num)/refresh', 'Admin\GiftPurchaseController::refresh/$1');
     });
 
-    $routes->group('gift-orders', static function ($routes) {
+    $routes->group('gift-orders', ['filter' => 'area:gifts.manage'], static function ($routes) {
         $routes->get('/', 'Admin\GiftOrderController::index');
         $routes->post('(:num)/fulfill', 'Admin\GiftOrderController::fulfill/$1');
         $routes->post('(:num)/cancel', 'Admin\GiftOrderController::cancel/$1');
     });
 
-    $routes->group('notifications', static function ($routes) {
+    $routes->group('notifications', ['filter' => 'area:notifications.manage'], static function ($routes) {
         $routes->get('/', 'Admin\NotificationController::index');
         $routes->post('(:num)/resend', 'Admin\NotificationController::resend/$1');
     });
@@ -185,7 +198,7 @@ $routes->group('admin', ['filter' => 'auth:session'], static function ($routes) 
     // POST route (no PUT+_method spoofing) to stay consistent with every
     // other admin form in this project.
     
-    $routes->group('categories', static function ($routes) {
+    $routes->group('categories', ['filter' => 'area:catalog.manage'], static function ($routes) {
         $routes->get('/', 'Admin\CategoryController::index');
         $routes->get('create', 'Admin\CategoryController::create');
         $routes->post('/', 'Admin\CategoryController::store');
@@ -195,7 +208,7 @@ $routes->group('admin', ['filter' => 'auth:session'], static function ($routes) 
         $routes->post('(:num)/activate', 'Admin\CategoryController::activate/$1');
     });
 
-    $routes->group('shows', static function ($routes) {
+    $routes->group('shows', ['filter' => 'area:catalog.manage'], static function ($routes) {
         $routes->get('/', 'Admin\ShowController::index');
         $routes->get('create', 'Admin\ShowController::create');
         $routes->post('/', 'Admin\ShowController::store');
@@ -205,7 +218,7 @@ $routes->group('admin', ['filter' => 'auth:session'], static function ($routes) 
         $routes->post('(:num)/activate', 'Admin\ShowController::activate/$1');
     });
 
-    $routes->group('rate-tiers', static function ($routes) {
+    $routes->group('rate-tiers', ['filter' => 'area:catalog.manage'], static function ($routes) {
         $routes->get('/', 'Admin\RateTierController::index');
         $routes->get('create', 'Admin\RateTierController::create');
         $routes->post('/', 'Admin\RateTierController::store');
@@ -216,7 +229,7 @@ $routes->group('admin', ['filter' => 'auth:session'], static function ($routes) 
     });
 
     // Example messages offered on the booking form.
-    $routes->group('message-templates', static function ($routes) {
+    $routes->group('message-templates', ['filter' => 'area:catalog.manage'], static function ($routes) {
         $routes->get('/', 'Admin\MessageTemplateController::index');
         $routes->get('create', 'Admin\MessageTemplateController::create');
         $routes->post('/', 'Admin\MessageTemplateController::store');
@@ -228,7 +241,7 @@ $routes->group('admin', ['filter' => 'auth:session'], static function ($routes) 
 
     // Local gifts (fully editable) — vendor-sourced gifts are listed here
     // too but only activate/deactivate apply to them.
-    $routes->group('gifts', static function ($routes) {
+    $routes->group('gifts', ['filter' => 'area:gifts.manage'], static function ($routes) {
         $routes->get('/', 'Admin\GiftController::index');
         $routes->get('create', 'Admin\GiftController::create');
         $routes->post('/', 'Admin\GiftController::store');
@@ -239,7 +252,7 @@ $routes->group('admin', ['filter' => 'auth:session'], static function ($routes) 
     });
 
     // Third-party gift vendor connections.
-    $routes->group('gift-vendors', static function ($routes) {
+    $routes->group('gift-vendors', ['filter' => 'area:gifts.manage'], static function ($routes) {
         $routes->get('/', 'Admin\GiftVendorController::index');
         $routes->get('create', 'Admin\GiftVendorController::create');
         $routes->post('/', 'Admin\GiftVendorController::store');

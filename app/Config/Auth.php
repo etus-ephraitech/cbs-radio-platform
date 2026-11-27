@@ -69,6 +69,11 @@ class Auth extends BaseAuth
         'users.delete' => 'Delete users',
         'roles.manage' => 'Manage roles and permissions',
         'tokens.manage' => 'Manage access tokens and API keys',
+        'bookings.manage' => 'Bookings, moderation queue and payments',
+        'gifts.manage' => 'Gifts, gift vendors, gift orders and shop purchases',
+        'catalog.manage' => 'Categories, shows, packages and message templates',
+        'notifications.manage' => 'Notifications',
+        'settings.manage' => 'Settings',
     ];
 
     public array $matrix = [
@@ -79,6 +84,11 @@ class Auth extends BaseAuth
             'users.*',
             'roles.manage',
             'tokens.manage',
+            'bookings.manage',
+            'gifts.manage',
+            'catalog.manage',
+            'notifications.manage',
+            'settings.manage',
         ],
         'user' => [],
     ];

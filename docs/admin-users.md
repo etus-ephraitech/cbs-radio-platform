@@ -55,3 +55,37 @@ the on-air time.
 
 **Visitor's message box.** "Their name" and "A sign-off with my name" add text at the cursor, using the names typed
 so far or the same `[their name]` / `[your name]` markers the examples use. Undo covers them.
+
+## Roles and permissions
+
+**Admin > Roles** (superadmin only, same `role:superadmin` filter as Users) lists every role with where it comes
+from, how many people have it and how many permissions it grants, and a matrix of who may do what. A role is made,
+renamed, described and given permissions on its own page.
+
+- It needs `ephraitech/ci4-auth` 0.12 (roles edited in the app arrived in 0.11): `composer update ephraitech/ci4-auth`,
+  then `php spark migrate -n "Ephraitech\Auth"` (adds `auth_roles.app_managed`) and `php spark auth:sync`.
+- Writing goes through the package's `service('authRoles')`. A role saved here is "managed in the app": `auth:sync`
+  leaves it alone. **Hand back to configuration** returns a role that `Config\Auth` defines to the config, and the next
+  `auth:sync` restores its configured title, description and permissions.
+- The super role (`superadmin`) passes every check, so its permissions are not edited and it cannot be deleted. A role
+  defined in `Config\Auth` cannot be deleted here (remove it from the config and run `auth:sync --prune`), and a role
+  that people still have cannot be deleted until it is taken off them in Users.
+
+### What a permission does
+
+Five permissions guard the admin areas, one each, and the routes check them (`area:<permission>`, `App\Filters\AreaAccess`):
+
+| Permission | Opens |
+| --- | --- |
+| `bookings.manage` | Bookings, Moderation queue, Payments |
+| `gifts.manage` | Gifts, Gift vendors, Gift orders, Shop purchases |
+| `catalog.manage` | Categories, Shows, Packages, Message templates |
+| `notifications.manage` | Notifications |
+| `settings.manage` | Settings |
+
+The dashboard stays open to all staff. Users, Roles, Logo and Appearance are always superadmin-only. The side menu hides
+the areas a person's roles do not include, and the routes refuse them too. `Config\Auth` grants all five to `administrator`
+(`admin`), so nothing changes for them once `php spark auth:sync` has run.
+
+Until `auth:sync` has created a permission, its area stays open to signed-in staff (as before roles had a say), so a deploy
+cannot lock administrators out in the gap. Once the permission exists, it is enforced.

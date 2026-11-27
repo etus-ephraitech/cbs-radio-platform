@@ -21,30 +21,34 @@ $isActive = static function (string $path) use ($currentPath): bool {
 $menu = [
     ['link' => 'admin', 'label' => 'Dashboard', 'icon' => 'dashboard'],
     ['category' => 'Operations'],
-    ['link' => 'admin/bookings', 'label' => 'Bookings', 'icon' => 'bookings'],
-    ['link' => 'admin/moderation', 'label' => 'Moderation queue', 'icon' => 'moderation'],
-    ['link' => 'admin/payments', 'label' => 'Payments', 'icon' => 'payments'],
-    ['link' => 'admin/gift-orders', 'label' => 'Gift orders', 'icon' => 'gift-orders'],
-    ['link' => 'admin/gift-purchases', 'label' => 'Shop purchases', 'icon' => 'gift-orders'],
-    ['link' => 'admin/notifications', 'label' => 'Notifications', 'icon' => 'notifications'],
+    ['link' => 'admin/bookings', 'area' => 'bookings.manage', 'label' => 'Bookings', 'icon' => 'bookings'],
+    ['link' => 'admin/moderation', 'area' => 'bookings.manage', 'label' => 'Moderation queue', 'icon' => 'moderation'],
+    ['link' => 'admin/payments', 'area' => 'bookings.manage', 'label' => 'Payments', 'icon' => 'payments'],
+    ['link' => 'admin/gift-orders', 'area' => 'gifts.manage', 'label' => 'Gift orders', 'icon' => 'gift-orders'],
+    ['link' => 'admin/gift-purchases', 'area' => 'gifts.manage', 'label' => 'Shop purchases', 'icon' => 'gift-orders'],
+    ['link' => 'admin/notifications', 'area' => 'notifications.manage', 'label' => 'Notifications', 'icon' => 'notifications'],
     ['link' => 'presenter', 'label' => 'Presenter portal', 'icon' => 'presenter'],
     ['category' => 'Catalog'],
-    ['link' => 'admin/categories', 'label' => 'Categories', 'icon' => 'categories'],
-    ['link' => 'admin/rate-tiers', 'label' => 'Packages', 'icon' => 'packages'],
-    ['link' => 'admin/shows', 'label' => 'Shows', 'icon' => 'shows'],
-    ['link' => 'admin/message-templates', 'label' => 'Message templates', 'icon' => 'templates'],
-    ['link' => 'admin/gifts', 'label' => 'Gifts', 'icon' => 'gifts'],
-    ['link' => 'admin/gift-vendors', 'label' => 'Gift vendors', 'icon' => 'vendors'],
+    ['link' => 'admin/categories', 'area' => 'catalog.manage', 'label' => 'Categories', 'icon' => 'categories'],
+    ['link' => 'admin/rate-tiers', 'area' => 'catalog.manage', 'label' => 'Packages', 'icon' => 'packages'],
+    ['link' => 'admin/shows', 'area' => 'catalog.manage', 'label' => 'Shows', 'icon' => 'shows'],
+    ['link' => 'admin/message-templates', 'area' => 'catalog.manage', 'label' => 'Message templates', 'icon' => 'templates'],
+    ['link' => 'admin/gifts', 'area' => 'gifts.manage', 'label' => 'Gifts', 'icon' => 'gifts'],
+    ['link' => 'admin/gift-vendors', 'area' => 'gifts.manage', 'label' => 'Gift vendors', 'icon' => 'vendors'],
     ['category' => 'System'],
-    ['link' => 'admin/settings', 'label' => 'Settings', 'icon' => 'settings'],
+    ['link' => 'admin/settings', 'area' => 'settings.manage', 'label' => 'Settings', 'icon' => 'settings'],
 ];
 
 // Pages only a superadmin may open (the routes enforce it; this only decides whether to show the link).
 if (cbs_is_superadmin()) {
     $menu[] = ['link' => 'admin/users', 'label' => 'Users', 'icon' => 'presenter'];
+    $menu[] = ['link' => 'admin/roles', 'label' => 'Roles', 'icon' => 'presenter'];
     $menu[] = ['link' => 'admin/branding', 'label' => 'Logo', 'icon' => 'gallery'];
     $menu[] = ['link' => 'admin/appearance', 'label' => 'Appearance', 'icon' => 'palette'];
 }
+
+// Leave out the areas this person's role does not include (the routes refuse them too).
+$menu = array_values(array_filter($menu, static fn (array $item): bool => ! isset($item['area']) || \App\Libraries\AreaPermission::allows($item['area'])));
 
 $uploadedLogo = cbs_brand()['logo']; // Admin > Logo; empty means the theme's own files
 $logo = static fn (string $file): string => $uploadedLogo !== '' ? esc($uploadedLogo, 'attr') : esc(base_url('assets/images/brand-logos/' . $file), 'attr');
