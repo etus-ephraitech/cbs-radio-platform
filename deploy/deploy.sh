@@ -70,16 +70,21 @@ ok "vendor/ is up to date"
 
 # ----------------------------------------------------------------------------------------------- 3. files
 say "Checking folders the site writes to"
-for dir in writable writable/cache writable/logs writable/session writable/uploads writable/debugbar; do
+for dir in writable writable/cache writable/logs writable/session writable/uploads writable/debugbar public/uploads; do
     mkdir -p "$dir"
 done
-chmod -R u+rwX writable
-ok "writable/ is writable"
+chmod -R u+rwX writable public/uploads
+ok "writable/ and public/uploads/ (logo and icon uploads) are writable"
 
 # ----------------------------------------------------------------------------------------------- 4. database
 say "Running database migrations"
 "$PHP" spark migrate --all
 ok "Database schema is current"
+
+# Roles and permissions: creates any new permission (the admin areas need them) and leaves roles edited in
+# Admin > Roles alone. Safe to run on every deploy.
+"$PHP" spark auth:sync
+ok "Roles and permissions are in sync"
 
 say "Clearing the cache"
 "$PHP" spark cache:clear
