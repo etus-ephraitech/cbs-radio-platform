@@ -62,8 +62,20 @@ class StaffUserService
     {
         $roles = [];
 
-        foreach (service('authRoles')->all() as $role) {
-            $roles[(string) $role->name] = (string) ($role->title ?: $role->name);
+        // Newer package versions keep roles in the database (service 'authRoles'); older ones only know the roles
+        // in Config\Auth::$roles, which `php spark auth:sync` copies to the database.
+        $manager = service('authRoles');
+
+        if ($manager !== null) {
+            foreach ($manager->all() as $role) {
+                $roles[(string) $role->name] = (string) ($role->title ?: $role->name);
+            }
+
+            return $roles;
+        }
+
+        foreach ($this->config->roles as $name => $definition) {
+            $roles[(string) $name] = (string) (($definition['title'] ?? '') ?: $name);
         }
 
         return $roles;
