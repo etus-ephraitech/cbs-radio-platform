@@ -173,10 +173,14 @@ class LandingController extends BaseController
     }
 
     /**
-     * The gifts for the homepage: up to four that can be added to a greeting (ours first, then other vendors') and
-     * up to eight delivered to the door by a hosted-checkout partner (Katale), which are bought with the gift cart.
-     * Each carries 'hosted' so the page knows which group and which button it belongs to. A delivered gift that is
-     * out of stock is left off, so the page never offers what the cart would refuse.
+     * The gifts for the homepage: up to six that can be added to a greeting and up to eight delivered to the door
+     * by a hosted-checkout partner (Katale), which are bought with the gift cart. Each carries 'hosted' so the page
+     * knows which group and which button it belongs to.
+     *
+     * Each group is shared out between its suppliers in turn (ours, then each vendor, cheapest first), so one
+     * supplier with many gifts cannot push every other vendor's gifts off the page. A gift from a vendor that has
+     * been switched off is left out, and so is a delivered gift that is out of stock, so the page never offers what
+     * the booking or the cart would refuse.
      *
      * @return array<int, array<string, mixed>> the greeting gifts first, then the delivered ones
      */
@@ -185,10 +189,13 @@ class LandingController extends BaseController
         $own = $hosted = [];
 
         foreach ((new GiftModel())->active() as $gift) {
-            $isHosted = $gift['source'] === GiftModel::SOURCE_VENDOR
-                && in_array($gift['vendor_driver'] ?? '', GiftVendorModel::HOSTED_DRIVERS, true);
+            $isVendor = $gift['source'] === GiftModel::SOURCE_VENDOR;
 
-            if ($isHosted) {
+            if ($isVendor && (int) ($gift['vendor_active'] ?? 1) !== 1) {
+                continue;
+            }
+
+            if ($isVendor && in_array($gift['vendor_driver'] ?? '', GiftVendorModel::HOSTED_DRIVERS, true)) {
                 if (isset($gift['stock_available']) && (int) $gift['stock_available'] === 0) {
                     continue;
                 }
@@ -199,10 +206,50 @@ class LandingController extends BaseController
             }
         }
 
-        usort($own, static fn (array $a, array $b) => [$a['source'] === 'local' ? 0 : 1, (float) $a['price']]
-            <=> [$b['source'] === 'local' ? 0 : 1, (float) $b['price']]);
-        usort($hosted, static fn (array $a, array $b) => (float) $a['price'] <=> (float) $b['price']);
+        return array_merge($this->shareBetweenSuppliers($own, 6), $this->shareBetweenSuppliers($hosted, 8));
+    }
 
-        return array_merge(array_slice($own, 0, 4), array_slice($hosted, 0, 8));
+    /**
+     * Takes up to $limit gifts, one supplier after another, cheapest first within each. Our own gifts are the first
+     * supplier, so they lead without taking every place.
+     *
+     * @param array<int, array<string, mixed>> $gifts
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    protected function shareBetweenSuppliers(array $gifts, int $limit): array
+    {
+        $bySupplier = [];
+
+        foreach ($gifts as $gift) {
+            $key = $gift['source'] === GiftModel::SOURCE_VENDOR ? 'v' . (int) $gift['vendor_id'] : 'a-ours';
+            $bySupplier[$key][] = $gift;
+        }
+
+        ksort($bySupplier); // "a-ours" sorts before every "v<id>"
+
+        foreach ($bySupplier as &$list) {
+            usort($list, static fn (array $a, array $b) => (float) $a['price'] <=> (float) $b['price']);
+        }
+        unset($list);
+
+        $picked = [];
+
+        while (count($picked) < $limit && $bySupplier !== []) {
+            foreach ($bySupplier as $key => &$list) {
+                $picked[] = array_shift($list);
+
+                if ($list === []) {
+                    unset($bySupplier[$key]);
+                }
+
+                if (count($picked) === $limit) {
+                    break 2;
+                }
+            }
+            unset($list);
+        }
+
+        return $picked;
     }
 }

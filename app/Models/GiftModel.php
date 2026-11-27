@@ -60,7 +60,7 @@ class GiftModel extends Model
      */
     public function active(): array
     {
-        return $this->select('gifts.*, gift_vendors.name AS vendor_name, gift_vendors.driver AS vendor_driver')
+        return $this->select('gifts.*, gift_vendors.name AS vendor_name, gift_vendors.driver AS vendor_driver, gift_vendors.is_active AS vendor_active')
             ->join('gift_vendors', 'gift_vendors.id = gifts.vendor_id', 'left')
             ->where('gifts.is_active', 1)
             ->orderBy('gifts.name', 'ASC')

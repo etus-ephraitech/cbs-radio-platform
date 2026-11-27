@@ -447,4 +447,29 @@ final class LandingPageTest extends AppFeatureTestCase
 
         $this->assertStringNotContainsString('<div class="cbs-notice', $this->withSession([])->get('/')->getBody());
     }
+
+    public function testAVendorsGiftsAreNotPushedOffThePageByManyOfOurOwn(): void
+    {
+        $vendor = $this->makeVendor(['name' => 'Gift Hub', 'slug' => 'gift-hub']);
+
+        foreach (range(1, 8) as $n) {
+            $this->makeGift(['name' => "Our gift {$n}", 'price' => 1000 * $n]);
+        }
+
+        $this->makeGift(['name' => 'Hub Airtime', 'type' => 'airtime', 'price' => 90000, 'source' => 'vendor', 'vendor_id' => $vendor['id']]);
+
+        $body = $this->body();
+
+        $this->assertStringContainsString('Hub Airtime', $body, 'The vendor gift gets a place although it is the dearest.');
+        $this->assertStringContainsString('Our gift 1', $body);
+        $this->assertStringNotContainsString('Our gift 8', $body, 'The page is still a selection, not the whole catalogue.');
+    }
+
+    public function testAGiftFromAVendorThatIsSwitchedOffIsNotShown(): void
+    {
+        $off = $this->makeVendor(['name' => 'Closed Hub', 'slug' => 'closed-hub', 'is_active' => 0]);
+        $this->makeGift(['name' => 'Ghost Airtime', 'type' => 'airtime', 'source' => 'vendor', 'vendor_id' => $off['id']]);
+
+        $this->assertStringNotContainsString('Ghost Airtime', $this->body());
+    }
 }
