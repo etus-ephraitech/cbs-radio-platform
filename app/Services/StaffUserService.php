@@ -31,9 +31,24 @@ class StaffUserService
     private UserModel $users;
     private Authorizer $authorizer;
 
+    /**
+     * The auth config the application really defines. Package 0.10.3 and later has a resolver for this; before
+     * that, the application's own Config\Auth is the one to read (a fully qualified package class would skip it).
+     */
+    private static function authConfig(): Auth
+    {
+        if (class_exists(ConfigResolver::class)) {
+            return ConfigResolver::resolve();
+        }
+
+        $app = \Config\Auth::class;
+
+        return class_exists($app) && is_subclass_of($app, Auth::class) ? config($app) : config(Auth::class);
+    }
+
     public function __construct(?Authorizer $authorizer = null, ?UserModel $users = null)
     {
-        $this->config     = ConfigResolver::resolve();
+        $this->config     = self::authConfig();
         $this->authorizer = $authorizer ?? service('authAuthorizer');
         $this->users      = $users ?? new UserModel();
     }
