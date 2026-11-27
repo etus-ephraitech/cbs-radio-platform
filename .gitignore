@@ -20,7 +20,7 @@
 !/writable/voice-notes/index.html
 
 # Builds / archives
-/builds/
+/build/*
 
 # Logs
 *.log
